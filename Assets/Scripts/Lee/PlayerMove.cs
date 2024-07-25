@@ -2,10 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerMovve : MonoBehaviour
+public class PlayerMove : MonoBehaviour
 {
     public float MoveSpeed = 7.0f;
-    public float rotSpeed = 200.0f;
+    public float rotSpeed = 200.0f; 
     public float yVelocity = 2;
     public float jumpPower = 4;
     public int MaxJumpCounter = 1;
