@@ -96,7 +96,13 @@ public class PlayerMove : MonoBehaviour
 
     }
 
-
+    //void Idle()
+    //{
+    //    if(Vector3.Distance(transform.position, PlayerMove) < findDistance)
+    //    {
+            
+    //    }
+    //}
 }
 
 
