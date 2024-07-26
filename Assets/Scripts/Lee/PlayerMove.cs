@@ -14,11 +14,17 @@ public class PlayerMove : MonoBehaviour
     float rotY;
     float yPos;
     int currentJumpCount = 0;
+    bool isRun;
 
-
+    Animator anim;
     CharacterController cc;
 
     Vector3 gravityPower;
+
+    private void Awake()
+    {
+        anim = GetComponentInChildren<Animator>();
+    }
 
     void Start()
     {
@@ -36,12 +42,13 @@ public class PlayerMove : MonoBehaviour
         Move();
         Rotate();
 
-
+        
     }
     void Move()
     {
         float h = Input.GetAxisRaw("Horizontal");
         float v = Input.GetAxisRaw("Vertical");
+        isRun = Input.GetButtonDown("Run");
 
         Vector3 dir = new Vector3(h, 0, v);
         dir = transform.TransformDirection(dir);
@@ -65,6 +72,9 @@ public class PlayerMove : MonoBehaviour
         dir.y = yPos;
 
         cc.Move(dir * MoveSpeed * Time.deltaTime);
+
+        anim.SetBool("isWalk", dir != Vector3.zero);
+        anim.SetBool("isRun", isRun);
     }
     void Rotate()
     {
