@@ -4,11 +4,12 @@ using UnityEngine;
 
 public class PlayerMove : MonoBehaviour
 {
-    public float MoveSpeed = 5.0f;
+    public int MoveSpeed = 5;
     public float rotSpeed = 200.0f;
     public float yVelocity = 2;
     public float jumpPower = 4;
     public int MaxJumpCounter = 1;
+    public float Stamina = 100;
 
     float rotX;
     float rotY;
@@ -22,7 +23,7 @@ public class PlayerMove : MonoBehaviour
 
 
     Vector3 gravityPower;
-
+    
     private void Awake()
     {
         anim = GetComponentInChildren<Animator>();
@@ -36,12 +37,15 @@ public class PlayerMove : MonoBehaviour
         cc = GetComponent<CharacterController>();
 
         gravityPower = Physics.gravity;
+        Stamina = 100;
     }
 
     void Update()
     {
         Move();
         rotate();
+        
+
     }
     void Move()
     {
@@ -69,11 +73,29 @@ public class PlayerMove : MonoBehaviour
         }
         dir.y = yPos;
 
+        // run이 눌렸을때 스피드가 2배 되어야한다.
+        if (Input.GetButton("Run")) 
+        {
+            cc.Move(dir * (MoveSpeed * 2) * Time.deltaTime);
+        }
+        else
+        {
+            cc.Move(dir * (MoveSpeed * 1) * Time.deltaTime);
+        }
+    
+        if(Input.GetButtonDown("Dodge"))
+        {
+            cc.Move(dir * (MoveSpeed * 5) * Time.deltaTime);
+            isDodge = true;
 
-        cc.Move(dir * MoveSpeed * Time.deltaTime);
-        anim.SetBool("isWalk", dir != Vector3.zero);
-        
+            if(isDodge == true)
+            {
+                yPos = 0;
+                currentJumpCount = 0;
 
+            }
+            
+        }
     }
   
     void rotate()
@@ -96,25 +118,7 @@ public class PlayerMove : MonoBehaviour
 
     }
 
-    void run()
-    {
-
-        bool isrun = Input.GetButton("run");
-        if (Input.GetButton("run"))
-        {
-            float Run = MoveSpeed * 1.5f;
-
-
-            anim.SetBool("isrun", isrun);
-        }
-    }
-    //void Dodge()
-    //{
-    //   if(Input.GetButtonDown("Dodge") != Vector3.zero && !)
-    //    {
-
-    //    }
-    //}
+    
 
 
     //void MoveAni()

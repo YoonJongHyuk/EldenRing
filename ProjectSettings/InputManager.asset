@@ -313,8 +313,8 @@ InputManager:
     m_Name: Dodge
     descriptiveName: 
     descriptiveNegativeName: 
-    negativeButton: 
-    positiveButton: left shift
+    negativeButton: c
+    positiveButton: c
     altNegativeButton: 
     altPositiveButton: 
     gravity: 1000

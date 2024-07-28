@@ -581,11 +581,7 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 8722707484499129528, guid: 6a3c3c37133b6ae4d9590995c8166d88,
         type: 3}
       insertIndex: -1
-      addedObject: {fileID: 553012872}
-    - targetCorrespondingSourceObject: {fileID: 8722707484499129528, guid: 6a3c3c37133b6ae4d9590995c8166d88,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 553012878}
+      addedObject: {fileID: 553012881}
   m_SourcePrefab: {fileID: 100100000, guid: 6a3c3c37133b6ae4d9590995c8166d88, type: 3}
 --- !u!1 &397991290 stripped
 GameObject:
@@ -877,23 +873,6 @@ GameObject:
     type: 3}
   m_PrefabInstance: {fileID: 397991289}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &553012872
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 553012869}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 131a368c5251b7847939bea1601de429, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  MoveSpeed: 7
-  rotSpeed: 200
-  yVelocity: 2
-  jumpPower: 4
-  MaxJumpCounter: 1
 --- !u!143 &553012873
 CharacterController:
   m_ObjectHideFlags: 0
@@ -970,7 +949,7 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 1
---- !u!114 &553012878
+--- !u!114 &553012881
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -979,12 +958,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 553012869}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 30922853725a4da4aae7616ca8a0a811, type: 3}
+  m_Script: {fileID: 11500000, guid: 131a368c5251b7847939bea1601de429, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 7
-  h: 0
-  v: 0
+  MoveSpeed: 5
+  rotSpeed: 200
+  yVelocity: 2
+  jumpPower: 4
+  MaxJumpCounter: 1
 --- !u!1001 &708241066
 PrefabInstance:
   m_ObjectHideFlags: 0
