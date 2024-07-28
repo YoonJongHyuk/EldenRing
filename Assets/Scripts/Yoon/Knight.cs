@@ -35,21 +35,7 @@ namespace yoon
 
         private void Start()
         {
-            thisTransform = GetComponent<Transform>();
-            navMeshAgent = GetComponent<NavMeshAgent>();
-
-            if (wayPointGroup != null)
-            {
-                points = wayPointGroup.GetComponentsInChildren<Transform>();
-
-                // 첫 번째 요소(부모)를 건너뛰고 배열을 초기화
-                List<Transform> pointList = new List<Transform>(points);
-                pointList.RemoveAt(0);
-                points = pointList.ToArray();
-            }
-
-            player = GameObject.FindWithTag("Player").transform;
-            playerScript = player.GetComponent<TestScripts>();
+            EnterState();
         }
 
         private void Update()
@@ -101,7 +87,21 @@ namespace yoon
 
         public override void EnterState()
         {
-            // 구현 필요
+            thisTransform = GetComponent<Transform>();
+            navMeshAgent = GetComponent<NavMeshAgent>();
+
+            if (wayPointGroup != null)
+            {
+                points = wayPointGroup.GetComponentsInChildren<Transform>();
+
+                // 첫 번째 요소(부모)를 건너뛰고 배열을 초기화
+                List<Transform> pointList = new List<Transform>(points);
+                pointList.RemoveAt(0);
+                points = pointList.ToArray();
+            }
+
+            player = GameObject.FindWithTag("Player").transform;
+            playerScript = player.GetComponent<TestScripts>();
         }
 
         public override void UpdateState()
