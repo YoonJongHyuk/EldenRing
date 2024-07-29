@@ -6,7 +6,7 @@ using yoon;
 public class TestScripts : MonoBehaviour, IState, IInput
 {
     public bool hiding;
-    public float hpCount = 20f;
+    public int hpCount = 20;
     void Awake()
     {
         hiding = true;

@@ -27,8 +27,8 @@ namespace yoon
         public Transform wayPointGroup; // 인스펙터 창에서 할당할 수 있도록 public으로 설정
         private Transform[] points;
 
-        float knightDamage = 5f;
-        float knightHpCount = 10f;
+        int knightDamage = 5;
+        int knightHpCount = 10;
 
         TestScripts playerScript;
         NavMeshAgent navMeshAgent;
