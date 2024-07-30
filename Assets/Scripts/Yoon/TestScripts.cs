@@ -18,7 +18,16 @@ public class TestScripts : MonoBehaviour, IState, IInput
         UpdateState();
     }
 
-    
+    private void FixedUpdate()
+    {
+        float h = Input.GetAxis("Horizontal");
+        float v = Input.GetAxis("Vertical");
+
+        Vector3 dir = new Vector3(h, 0, v);
+        transform.position += dir * 5f * Time.deltaTime;
+    }
+
+
 
     void HidingChange()
     {
@@ -50,6 +59,11 @@ public class TestScripts : MonoBehaviour, IState, IInput
         if (Input.GetKeyDown(KeyCode.Q))
         {
             HidingChange();
+        }
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            Scorpion scorpion = GameObject.Find("Scorpion").GetComponent<Scorpion>();
+            scorpion.GetDamage(20);
         }
     }
 }

@@ -1,12 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.UI;
 using yoon;
 
 namespace yoon
 {
-    public class Knight : Monster
+    public class Scorpion : Monster
     {
         public enum MoveType
         {
@@ -16,6 +18,9 @@ namespace yoon
 
         public MoveType moveType = MoveType.Way_Point;
         public float moveSpeed = 1f;
+
+        public TMP_Text hpText;
+
         float damping = 3f;
         float rotationSpeedMultiplier = 1f; // 이동 속도에 따른 회전 속도 증가 비율
         private int nextIndex = 0;
@@ -27,11 +32,33 @@ namespace yoon
         public Transform wayPointGroup; // 인스펙터 창에서 할당할 수 있도록 public으로 설정
         private Transform[] points;
 
-        int knightDamage = 5;
-        int knightHpCount = 10;
+        int scorpionDamage = 5;
+        int scorpionHP;
+        int nextHP;
+        float currentTime = 0;
+        private float lerpDuration = 1.5f; // 체력이 천천히 빠질 시간 (1.5초)
+        private float delayDuration = 1.5f; // 딜레이
+        private int totalDamageTaken = 0; // 누적 데미지
+
 
         TestScripts playerScript;
         NavMeshAgent navMeshAgent;
+
+        [SerializeField]
+        private Slider _hpBar;
+
+        [SerializeField]
+        private Slider _nextHpBar; // nextHP 용 슬라이더 추가
+
+
+        public int ScorpionHP
+        {
+            get => scorpionHP;
+            private set => scorpionHP = Mathf.Clamp(value, 0, scorpionHP);
+        }
+
+        private Camera mainCamera; // 메인 카메라 참조
+        public float hideDistance = 10f; // 체력바를 숨길 거리
 
         private void Start()
         {
@@ -41,11 +68,46 @@ namespace yoon
         private void Update()
         {
             UpdateState();
+            UpdateHPBarVisibility(); // 체력바 가시성 업데이트
+        }
+
+        private void Awake()
+        {
+            scorpionHP = 200;
+            nextHP = scorpionHP;
+            _hpBar.maxValue = scorpionHP;
+            _hpBar.value = scorpionHP;
+            _nextHpBar.maxValue = scorpionHP; // nextHP 슬라이더 초기화
+            _nextHpBar.value = scorpionHP;
+            mainCamera = Camera.main; // 메인 카메라 초기화
+        }
+
+        public void SetMaxHealth(int health)
+        {
+            _hpBar.maxValue = health;
+            _hpBar.value = health;
+            _nextHpBar.maxValue = health;
+            _nextHpBar.value = health;
+        }
+
+        public void GetDamage(int damage)
+        {
+            scorpionHP -= damage;
+            _hpBar.value = scorpionHP;
+            nextHP = scorpionHP;
+            currentTime = 0.0f; // 새 데미지를 받을 때마다 currentTime을 초기화
+            totalDamageTaken += damage; // 누적 데미지 업데이트
+            UpdateDamageText(); // 데미지 텍스트 업데이트
+        }
+
+        private void UpdateDamageText()
+        {
+            hpText.text = totalDamageTaken.ToString();
         }
 
         public override void Attack()
         {
-            playerScript.hpCount -= knightDamage;
+            playerScript.hpCount -= scorpionDamage;
         }
 
         public override void Die()
@@ -106,6 +168,25 @@ namespace yoon
 
         public override void UpdateState()
         {
+            
+            if (_nextHpBar.value != nextHP)
+            {
+                currentTime += Time.deltaTime;
+
+                if (currentTime >= delayDuration)
+                {
+                    float t = (currentTime - delayDuration) / lerpDuration;
+                    _nextHpBar.value = Mathf.Lerp(_nextHpBar.value, nextHP, t);
+
+                    if (Mathf.Abs(_nextHpBar.value - nextHP) < 0.01f)
+                    {
+                        _nextHpBar.value = nextHP;
+                        currentTime = 0.0f;
+                    }
+                }
+            }
+
+
             if (playerScript.hiding)
             {
                 if (moveType == MoveType.FollowPlayer)
@@ -151,6 +232,27 @@ namespace yoon
             }
 
             return closestIndex;
+        }
+
+        private void LateUpdate()
+        {
+            if (_hpBar != null)
+            {
+                _hpBar.transform.LookAt(_hpBar.transform.position + mainCamera.transform.rotation * Vector3.forward,
+                    mainCamera.transform.rotation * Vector3.up);
+            }
+        }
+
+        private void UpdateHPBarVisibility()
+        {
+            if (Vector3.Distance(player.position, thisTransform.position) > hideDistance)
+            {
+                _hpBar.gameObject.SetActive(false);
+            }
+            else
+            {
+                _hpBar.gameObject.SetActive(true);
+            }
         }
     }
 }
