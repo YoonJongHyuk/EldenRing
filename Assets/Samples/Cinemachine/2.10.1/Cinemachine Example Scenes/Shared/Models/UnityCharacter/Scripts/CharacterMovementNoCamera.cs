@@ -17,6 +17,8 @@ public class CharacterMovementNoCamera : MonoBehaviour
     private bool isSprinting;
     private Animator anim;
     private float currentStrafeSpeed;
+
+
     private Vector2 currentVelocity;
 
     void OnEnable()
@@ -33,13 +35,13 @@ public class CharacterMovementNoCamera : MonoBehaviour
         var input = new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
         var speed = input.y;
         speed = Mathf.Clamp(speed, -1f, 1f);
-        speed = Mathf.SmoothDamp(anim.GetFloat("Speed"), speed, ref currentVelocity.y, Damping);
-        anim.SetFloat("Speed", speed);
-        anim.SetFloat("Direction", speed);
+      //  speed = Mathf.SmoothDamp(anim.GetFloat("Speed"), speed, ref currentVelocity.y, Damping);
+     //   anim.SetFloat("Speed", speed);
+      //  anim.SetFloat("Direction", speed);
 
         // set sprinting
         isSprinting = (Input.GetKey(sprintJoystick) || Input.GetKey(sprintKeyboard)) && speed > 0;
-        anim.SetBool("isSprinting", isSprinting);
+       // anim.SetBool("isSprinting", isSprinting);
 
         // strafing
         currentStrafeSpeed = Mathf.SmoothDamp(

@@ -4,7 +4,10 @@ using UnityEngine;
 
 public class PlayerMove : MonoBehaviour
 {
+    public float speed;
     public int MoveSpeed = 5;
+    public int sprintSpeed = 10;
+    public int dodgeSpeed = 10;
     public float rotSpeed = 200.0f;
     public float yVelocity = 2;
     public float jumpPower = 4;
@@ -17,8 +20,7 @@ public class PlayerMove : MonoBehaviour
     int currentJumpCount = 0;
     bool isRun;
     bool isDodge;
-
-    Animator anim;
+    Animator animator;
     CharacterController cc;
 
 
@@ -26,11 +28,23 @@ public class PlayerMove : MonoBehaviour
     
     private void Awake()
     {
-        anim = GetComponentInChildren<Animator>();
+        animator = GetComponent<Animator>();
+        
+    //    if (animator == null)
+    //    {
+    //        print("Animator component is not attached to the Gameobjcet");
+    //    }
+    //    else
+    //    {
+    //        print("Animator component found");
+    //    }
+
     }
 
     void Start()
     {
+
+
         rotX = transform.eulerAngles.x;
         rotY = transform.eulerAngles.y;
 
@@ -38,13 +52,16 @@ public class PlayerMove : MonoBehaviour
 
         gravityPower = Physics.gravity;
         Stamina = 100;
+
+
     }
+
 
     void Update()
     {
         Move();
         rotate();
-        
+        Attack();
 
     }
     void Move()
@@ -54,8 +71,11 @@ public class PlayerMove : MonoBehaviour
 
         // 수평이동 계산
         Vector3 dir = new Vector3(h, 0, v);
-
         dir = transform.TransformDirection(dir);
+        // float speed = 5.0f;
+        //animator.set
+
+        
         //transform.position += dir * MoveSpeed * Time.deltaTime;
 
         // 수직이동 계산
@@ -74,18 +94,18 @@ public class PlayerMove : MonoBehaviour
         dir.y = yPos;
 
         // run이 눌렸을때 스피드가 2배 되어야한다.
-        if (Input.GetButton("Run")) 
+        if (Input.GetButton("Run"))
         {
-            cc.Move(dir * (MoveSpeed * 2) * Time.deltaTime);
+            cc.Move(dir * sprintSpeed * Time.deltaTime);
         }
         else
         {
-            cc.Move(dir * (MoveSpeed * 1) * Time.deltaTime);
+            cc.Move(dir * MoveSpeed * Time.deltaTime);
         }
     
         if(Input.GetButtonDown("Dodge"))
         {
-            cc.Move(dir * (MoveSpeed * 5) * Time.deltaTime);
+            cc.Move(dir * dodgeSpeed * Time.deltaTime);
             isDodge = true;
 
             if(isDodge == true)
@@ -117,14 +137,17 @@ public class PlayerMove : MonoBehaviour
         transform.eulerAngles = new Vector3(0, rotY, 0);
 
     }
+    void Attack()
+    {
+        if(Input.GetMouseButtonDown(0))
+        {
+            //공격 애니메이션 추가
+           
+            //공격 시 데미지 부여 -- 콜라이더 충돌시 상대방에게 데미지 부여
+        }
+    }
 
     
-
-
-    //void MoveAni()
-    //{
-
-    //}
 
     //void Idle()
     //{

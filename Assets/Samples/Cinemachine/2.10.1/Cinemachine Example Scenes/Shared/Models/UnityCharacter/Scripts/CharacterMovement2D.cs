@@ -15,7 +15,7 @@ public class CharacterMovement2D : MonoBehaviour
     public bool checkGroundForJump = true;
 
     float speed = 0f;
-    bool isSprinting = false;
+        bool isSprinting = false;
     Animator anim;
     Vector2 input;
     float velocity;
@@ -49,13 +49,13 @@ public class CharacterMovement2D : MonoBehaviour
 
 		// set speed to horizontal inputs
 	    speed = Mathf.Abs(input.x);
-        speed = Mathf.SmoothDamp(anim.GetFloat("Speed"), speed, ref velocity, 0.1f);
-        anim.SetFloat("Speed", speed);
+        //speed = Mathf.SmoothDamp(anim.GetFloat("Speed"), speed, ref velocity, 0.1f);
+       // anim.SetFloat("Speed", speed);
 
         // set sprinting
 	    if ((Input.GetKeyDown(sprintJoystick) || Input.GetKeyDown(sprintKeyboard))&& input != Vector2.zero) isSprinting = true;
 	    if ((Input.GetKeyUp(sprintJoystick) || Input.GetKeyUp(sprintKeyboard))|| input == Vector2.zero) isSprinting = false;
-        anim.SetBool("isSprinting", isSprinting);
+       // anim.SetBool("isSprinting", isSprinting);
     }
 #endif
     private void Update()
