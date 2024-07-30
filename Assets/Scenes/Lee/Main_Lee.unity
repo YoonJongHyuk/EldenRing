@@ -2438,8 +2438,9 @@ GameObject:
   - component: {fileID: 1245171424}
   - component: {fileID: 6393974812585545011}
   - component: {fileID: 1245171427}
+  - component: {fileID: 6393974812585545012}
   m_Layer: 0
-  m_Name: Armature (1)
+  m_Name: Player
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2466,6 +2467,18 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &6393974812585545012
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6393974812585545010}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a6121fa981b1f3e44b711c8a4f333ff2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!4 &6413305654855321679
 Transform:
   m_ObjectHideFlags: 0

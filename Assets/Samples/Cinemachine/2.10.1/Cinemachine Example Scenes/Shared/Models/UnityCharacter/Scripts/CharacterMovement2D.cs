@@ -12,10 +12,10 @@ public class CharacterMovement2D : MonoBehaviour
     public KeyCode jumpKeyboard = KeyCode.Space;
     public float jumpVelocity = 7f;
     public float groundTolerance = 0.2f;
-    public bool checkGroundForJump = true;
+        public bool checkGroundForJump = true;
 
     float speed = 0f;
-        bool isSprinting = false;
+        private bool isSprinting = false;
     Animator anim;
     Vector2 input;
     float velocity;

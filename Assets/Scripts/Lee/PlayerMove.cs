@@ -13,11 +13,14 @@ public class PlayerMove : MonoBehaviour
     public float jumpPower = 4;
     public int MaxJumpCounter = 1;
     public float Stamina = 100;
+    public float attackRange = 1.0f;
+    public float attackPower = 10.0f;
 
     float rotX;
     float rotY;
     float yPos;
     int currentJumpCount = 0;
+    bool IsWalking;
     bool isRun;
     bool isDodge;
     Animator animator;
@@ -25,25 +28,16 @@ public class PlayerMove : MonoBehaviour
 
 
     Vector3 gravityPower;
-    
+
     private void Awake()
     {
         animator = GetComponent<Animator>();
-        
-    //    if (animator == null)
-    //    {
-    //        print("Animator component is not attached to the Gameobjcet");
-    //    }
-    //    else
-    //    {
-    //        print("Animator component found");
-    //    }
 
     }
 
     void Start()
     {
-
+        Cursor.lockState = CursorLockMode.Locked;
 
         rotX = transform.eulerAngles.x;
         rotY = transform.eulerAngles.y;
@@ -59,10 +53,16 @@ public class PlayerMove : MonoBehaviour
 
     void Update()
     {
+        Idle();
         Move();
         rotate();
         Attack();
 
+    }
+    void Idle()
+    {
+        animator.SetBool("Idle",true);
+        animator.Play("Idle");
     }
     void Move()
     {
@@ -72,22 +72,26 @@ public class PlayerMove : MonoBehaviour
         // 수평이동 계산
         Vector3 dir = new Vector3(h, 0, v);
         dir = transform.TransformDirection(dir);
+        animator.SetBool("IsWalking", true);
         // float speed = 5.0f;
         //animator.set
 
-        
+
         //transform.position += dir * MoveSpeed * Time.deltaTime;
 
         // 수직이동 계산
         yPos += gravityPower.y * yVelocity * Time.deltaTime;
+        //currentJumpCount = 1;
 
         if (cc.collisionFlags == CollisionFlags.CollidedBelow)
         {
+            animator.SetBool("IsJump", true);
             yPos = 0;
             currentJumpCount = 0;
         }
         if (Input.GetButtonDown("Jump") && currentJumpCount < MaxJumpCounter)
         {
+            animator.SetBool("IsJump", false);
             yPos = jumpPower;
             currentJumpCount++;
         }
@@ -96,28 +100,32 @@ public class PlayerMove : MonoBehaviour
         // run이 눌렸을때 스피드가 2배 되어야한다.
         if (Input.GetButton("Run"))
         {
+            animator.SetBool("IsRunning", true);
             cc.Move(dir * sprintSpeed * Time.deltaTime);
         }
         else
         {
             cc.Move(dir * MoveSpeed * Time.deltaTime);
+            animator.SetBool("IsWalking", true);
+            animator.SetBool("IsRunning", false);
+
         }
-    
-        if(Input.GetButtonDown("Dodge"))
+
+        if (Input.GetButtonDown("Dodge"))
         {
             cc.Move(dir * dodgeSpeed * Time.deltaTime);
             isDodge = true;
 
-            if(isDodge == true)
+            if (isDodge == true)
             {
                 yPos = 0;
                 currentJumpCount = 0;
 
             }
-            
+
         }
     }
-  
+
     void rotate()
     {
         float mousex = Input.GetAxis("Mouse X");
@@ -139,23 +147,15 @@ public class PlayerMove : MonoBehaviour
     }
     void Attack()
     {
-        if(Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(0))  // Left mouse button
         {
-            //공격 애니메이션 추가
-           
-            //공격 시 데미지 부여 -- 콜라이더 충돌시 상대방에게 데미지 부여
+            animator.SetTrigger("Attack");
+            Attack();
         }
+        //공격 시 데미지 부여 -- 콜라이더 충돌시 상대방에게 데미지 부여
     }
-
+}
     
 
-    //void Idle()
-    //{
-    //    if(Vector3.Distance(transform.position, PlayerMove) < findDistance)
-    //    {
-
-    //    }
-    //}
-}
 
 
