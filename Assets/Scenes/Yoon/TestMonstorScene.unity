@@ -2186,6 +2186,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8469803935136876113, guid: 4f010363a09e6e94381afe091c669765,
         type: 3}
+      propertyPath: thisHP
+      value: 200
+      objectReference: {fileID: 0}
+    - target: {fileID: 8469803935136876113, guid: 4f010363a09e6e94381afe091c669765,
+        type: 3}
       propertyPath: wayPointGroup
       value: 
       objectReference: {fileID: 102202849}

@@ -21,6 +21,11 @@ namespace yoon
 
         public TMP_Text hpText;
 
+        public int thisHP;
+
+        public bool isDead;
+
+
         float damping = 3f;
         float rotationSpeedMultiplier = 1f; // 이동 속도에 따른 회전 속도 증가 비율
         private int nextIndex = 0;
@@ -73,7 +78,7 @@ namespace yoon
 
         private void Awake()
         {
-            scorpionHP = 200;
+            scorpionHP = thisHP;
             nextHP = scorpionHP;
             _hpBar.maxValue = scorpionHP;
             _hpBar.value = scorpionHP;
@@ -82,22 +87,18 @@ namespace yoon
             mainCamera = Camera.main; // 메인 카메라 초기화
         }
 
-        public void SetMaxHealth(int health)
-        {
-            _hpBar.maxValue = health;
-            _hpBar.value = health;
-            _nextHpBar.maxValue = health;
-            _nextHpBar.value = health;
-        }
 
         public void GetDamage(int damage)
         {
-            scorpionHP -= damage;
-            _hpBar.value = scorpionHP;
-            nextHP = scorpionHP;
-            currentTime = 0.0f; // 새 데미지를 받을 때마다 currentTime을 초기화
-            totalDamageTaken += damage; // 누적 데미지 업데이트
-            UpdateDamageText(); // 데미지 텍스트 업데이트
+            if (scorpionHP > 0)
+            {
+                scorpionHP -= damage;
+                _hpBar.value = scorpionHP;
+                nextHP = scorpionHP;
+                currentTime = 0.0f; // 새 데미지를 받을 때마다 currentTime을 초기화
+                totalDamageTaken += damage; // 누적 데미지 업데이트
+                UpdateDamageText(); // 데미지 텍스트 업데이트
+            }
         }
 
         private void UpdateDamageText()
@@ -112,7 +113,11 @@ namespace yoon
 
         public override void Die()
         {
-            // 구현 필요
+            if (!isDead)
+            {
+                isDead = true;
+                Destroy(gameObject);
+            }
         }
 
         public override void Move()
@@ -149,6 +154,7 @@ namespace yoon
 
         public override void EnterState()
         {
+            isDead = false;
             thisTransform = GetComponent<Transform>();
             navMeshAgent = GetComponent<NavMeshAgent>();
 
@@ -168,7 +174,11 @@ namespace yoon
 
         public override void UpdateState()
         {
-            
+            if (scorpionHP <= 0)
+            {
+                Die();
+            }
+
             if (_nextHpBar.value != nextHP)
             {
                 currentTime += Time.deltaTime;
@@ -200,7 +210,10 @@ namespace yoon
             {
                 moveType = MoveType.FollowPlayer;
             }
-            Move();
+            if (!isDead)
+            {
+                Move();
+            }
         }
 
         public override void ExitState()
@@ -208,6 +221,8 @@ namespace yoon
             // 구현 필요
         }
 
+
+        // 플레이어와 충돌 시 공격
         private void OnTriggerEnter(Collider other)
         {
             if (other.gameObject.CompareTag("Player"))
@@ -216,6 +231,7 @@ namespace yoon
             }
         }
 
+        // 가장 가까운 웨이포인트를 다음 웨이포인트로 설정
         private int GetClosestWayPointIndex()
         {
             int closestIndex = 0;
