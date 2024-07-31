@@ -13,14 +13,17 @@ public class PlayerFSM : MonoBehaviour
         Attack = 2,
         AttackDelay = 4,
         Damaged = 8,
-        Dead = 16
+        Dead = 16,
+        heal = 32 
     }
     public PlayerState mystate = PlayerState.Idle; // 기본값
     public Animator animator;
     public float maxHP = 100;
+    public GameObject potionprefab;
+    public float healAmount = 20.0f;
 
     float currentTime = 0;
-    float currentHP = 0;
+    float currentHP = 10;
     Transform Player;
 
     CharacterController cc;
@@ -30,7 +33,7 @@ public class PlayerFSM : MonoBehaviour
     {
         Player = GameObject.Find("Player").transform;
         cc = GetComponent<CharacterController>();
-        currentHP = maxHP;
+        currentHP = 10;
     }
 
     private void Update()
@@ -57,6 +60,7 @@ public class PlayerFSM : MonoBehaviour
             default:
                 break;
         }
+        heal();
     }
 
 
@@ -65,12 +69,9 @@ public class PlayerFSM : MonoBehaviour
         
         if (mystate==PlayerState.Idle)
         {
-            animator.Play("IdleAnimation");
-         
         }
         else
         {
-            
             mystate = PlayerState.Move; // 이동상태로 넘어감 -- 근데 이동상태가 필요할까?
         }
     }
@@ -88,22 +89,18 @@ public class PlayerFSM : MonoBehaviour
             mystate = PlayerState.Idle;
         }
 
-
-
     }
     private void Attack()
     {
-         
-        if(Input.GetButtonDown("Fire1"))
-        {
 
+        if (Input.GetButtonDown("Fire1"))
+        {
             //버튼을 눌렀을때 공격이나가고 
-            animator.Play("Attack");
-            if (!Input.GetButtonDown("Fire1"))
-            {
-                // 입력없으면 대기 상태로 전환
-                mystate = PlayerState.Idle; // Idle상태로 전환
-            }
+        }
+        else
+        {
+            // 입력없으면 대기 상태로 전환
+            mystate = PlayerState.Idle; // Idle상태로 전환
         }
 
     }
@@ -115,7 +112,6 @@ public class PlayerFSM : MonoBehaviour
         {
             currentTime = 0;
             mystate = PlayerState.Attack;
-            
         }
 
     }
@@ -126,15 +122,14 @@ public class PlayerFSM : MonoBehaviour
         if (Vector3.Distance(transform.position, hitDirection) < 0.1f)
         {
             //맞으면 피격 애니메이션이 동작한다 (잠깐대기)
-            animator.Play("Damage");
         }
 
     }
     private void TakeDamage(float atkPower, Vector3 hitDir, Transform attacker)
     {
+      
         if (mystate == PlayerState.Dead || mystate == PlayerState.Damaged)
         {
-            animator.Play("Damage");
             return;
         }
 
@@ -143,7 +138,6 @@ public class PlayerFSM : MonoBehaviour
         if (currentHP <= 0) // HP가 0일때
         {
             mystate = PlayerState.Dead;
-            animator.Play("Die");
             currentTime = 0;
 
             GetComponent<CharacterController>().enabled = false;
@@ -152,14 +146,36 @@ public class PlayerFSM : MonoBehaviour
         else
         {
             mystate = PlayerState.Damaged;
-            animator.Play("Damage");
+
         }
     }
     private void Dead()
     {
-
-        
+        currentTime += Time.deltaTime;
+        if(currentTime > 3.0f)
+        {
+            GetComponent<CharacterController>().enabled = false;
+        }
 
     }
 
+    private void heal()
+    {
+        if(Input.GetKeyDown(KeyCode.K))
+        {
+            
+            //포션의 개수 -1 
+            //체력회복
+            currentHP = currentHP + healAmount;
+            // 체력을 최대값으로 제한
+            currentHP = Mathf.Clamp(currentHP, 0, maxHP);
+
+            if(currentHP >= maxHP)
+            {
+                //포션 비활성화
+                
+            }
+            print(currentHP);
+        }
+    }
 }

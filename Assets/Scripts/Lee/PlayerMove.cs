@@ -15,6 +15,8 @@ public class PlayerMove : MonoBehaviour
     public float Stamina = 100;
     public float attackRange = 1.0f;
     public float attackPower = 10.0f;
+    public GameObject[] weapons;
+    public bool[] hasWeapons;
 
     float rotX;
     float rotY;
@@ -23,6 +25,8 @@ public class PlayerMove : MonoBehaviour
     bool IsWalking;
     bool isRun;
     bool isDodge;
+    bool isattack;
+
     Animator animator;
     CharacterController cc;
 
@@ -46,8 +50,6 @@ public class PlayerMove : MonoBehaviour
 
         gravityPower = Physics.gravity;
         Stamina = 100;
-
-
     }
 
 
@@ -61,8 +63,7 @@ public class PlayerMove : MonoBehaviour
     }
     void Idle()
     {
-        animator.SetBool("Idle",true);
-        animator.Play("Idle");
+       // animator.SetBool("Idle", true);
     }
     void Move()
     {
@@ -113,15 +114,8 @@ public class PlayerMove : MonoBehaviour
 
         if (Input.GetButtonDown("Dodge"))
         {
-            cc.Move(dir * dodgeSpeed * Time.deltaTime);
+            cc.Move(dir * dodgeSpeed *3  * Time.deltaTime);
             isDodge = true;
-
-            if (isDodge == true)
-            {
-                yPos = 0;
-                currentJumpCount = 0;
-
-            }
 
         }
     }
@@ -150,7 +144,11 @@ public class PlayerMove : MonoBehaviour
         if (Input.GetMouseButtonDown(0))  // Left mouse button
         {
             animator.SetTrigger("Attack");
-            Attack();
+            isattack = true;
+        }
+        else
+        {
+            isattack = false;
         }
         //공격 시 데미지 부여 -- 콜라이더 충돌시 상대방에게 데미지 부여
     }
