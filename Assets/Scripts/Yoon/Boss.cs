@@ -19,10 +19,7 @@ namespace yoon
         {
 
         }
-        public override void TargetPlayer()
-        {
 
-        }
         public override void EnterState()
         {
 
