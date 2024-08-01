@@ -23,7 +23,8 @@ public class PlayerFSM : MonoBehaviour
     public float healAmount = 20.0f;
 
     float currentTime = 0;
-    float currentHP = 10;
+    float currentHP = 10; // 회복아이템 테스트할려고 일부러 낮춤 
+    bool CanHeal = true; 
     Transform Player;
 
     CharacterController cc;
@@ -52,15 +53,18 @@ public class PlayerFSM : MonoBehaviour
             case PlayerState.AttackDelay:
                 AttackDelay();
                 break;
-            case PlayerState.Damaged:
-                Damaged();
-                break;
+           // case PlayerState.Damaged:
+             //   Damaged();
+             //   break;
             case PlayerState.Dead:
-                
+                Dead();
+                break;
+            case PlayerState.heal:
+                heal();
+                break;
             default:
                 break;
         }
-        heal();
     }
 
 
@@ -93,9 +97,9 @@ public class PlayerFSM : MonoBehaviour
     private void Attack()
     {
 
-        if (Input.GetButtonDown("Fire1"))
+        if (Input.GetButtonDown("Fire1")) // 무기에 콜라이더 충돌해서 불러오자
         {
-            //버튼을 눌렀을때 공격이나가고 
+            //버튼을 눌렀을때 공격 애니메이션이나가고 
         }
         else
         {
@@ -104,7 +108,7 @@ public class PlayerFSM : MonoBehaviour
         }
 
     }
-    private void AttackDelay()
+    private void AttackDelay() // 존재이유 잘 모르겠음
     {
         // 이거 좀 이상함 
         currentTime += Time.deltaTime;
@@ -115,16 +119,7 @@ public class PlayerFSM : MonoBehaviour
         }
 
     }
-    private void Damaged()
-    {
-
-        transform.position = Vector3.Lerp(transform.position, hitDirection, 0.25f);
-        if (Vector3.Distance(transform.position, hitDirection) < 0.1f)
-        {
-            //맞으면 피격 애니메이션이 동작한다 (잠깐대기)
-        }
-
-    }
+   
     private void TakeDamage(float atkPower, Vector3 hitDir, Transform attacker)
     {
       
@@ -151,10 +146,12 @@ public class PlayerFSM : MonoBehaviour
     }
     private void Dead()
     {
-        currentTime += Time.deltaTime;
-        if(currentTime > 3.0f)
+        if(currentHP <= 0)
         {
+           
             GetComponent<CharacterController>().enabled = false;
+           // yield return new WaitForSeconds(2f);
+            Destroy(gameObject);
         }
 
     }
@@ -163,8 +160,9 @@ public class PlayerFSM : MonoBehaviour
     {
         if(Input.GetKeyDown(KeyCode.K))
         {
-            
-            //포션의 개수 -1 
+            CanHeal = true;
+            potionprefab.SetActive(true);
+             
             //체력회복
             currentHP = currentHP + healAmount;
             // 체력을 최대값으로 제한
@@ -172,10 +170,18 @@ public class PlayerFSM : MonoBehaviour
 
             if(currentHP >= maxHP)
             {
-                //포션 비활성화
-                
+                CanHeal = false;
             }
             print(currentHP);
         }
     }
+    //void Stamina()
+    //{
+    //    GameObject Player = GameObject.Find("Player");
+
+    //    if(Player != null)
+    //    {
+            
+    //    }
+    //}
 }

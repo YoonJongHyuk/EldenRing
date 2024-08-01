@@ -1,37 +1,44 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
+using yoon;
 
 public class PlayerMove : MonoBehaviour
 {
+    //이동 관련속도
     public float speed;
     public int MoveSpeed = 5;
     public int sprintSpeed = 10;
     public int dodgeSpeed = 10;
     public float rotSpeed = 200.0f;
-    public float yVelocity = 2;
-    public float jumpPower = 4;
-    public int MaxJumpCounter = 1;
-    public float Stamina = 100;
-    public float attackRange = 1.0f;
-    public float attackPower = 10.0f;
-    public GameObject[] weapons;
-    public bool[] hasWeapons;
-
-    float rotX;
-    float rotY;
-    float yPos;
-    int currentJumpCount = 0;
     bool IsWalking;
     bool isRun;
     bool isDodge;
+    //점프
+    public float yVelocity = 2;
+    public float jumpPower = 4;
+    public int MaxJumpCounter = 1;
+    int currentJumpCount = 0;
+    float yPos;
+    Vector3 gravityPower;
+    //스테미나
+    //public float Stamina = 100;
+    //공격
+    public float attackRange = 1.0f;
+    public float attackPower = 10.0f;
     bool isattack;
+    //체력
+    float MaxHP = 100;
+    float currentHP;
+    float nextHP;
+
+    float currentTime;
+    float rotX;
+    float rotY;
 
     Animator animator;
     CharacterController cc;
-
-
-    Vector3 gravityPower;
 
     private void Awake()
     {
@@ -49,7 +56,7 @@ public class PlayerMove : MonoBehaviour
         cc = GetComponent<CharacterController>();
 
         gravityPower = Physics.gravity;
-        Stamina = 100;
+        
     }
 
 
@@ -74,6 +81,7 @@ public class PlayerMove : MonoBehaviour
         Vector3 dir = new Vector3(h, 0, v);
         dir = transform.TransformDirection(dir);
         animator.SetBool("IsWalking", true);
+        
         // float speed = 5.0f;
         //animator.set
 
@@ -98,11 +106,13 @@ public class PlayerMove : MonoBehaviour
         }
         dir.y = yPos;
 
+
         // run이 눌렸을때 스피드가 2배 되어야한다.
         if (Input.GetButton("Run"))
         {
             animator.SetBool("IsRunning", true);
             cc.Move(dir * sprintSpeed * Time.deltaTime);
+
         }
         else
         {
@@ -110,6 +120,7 @@ public class PlayerMove : MonoBehaviour
             animator.SetBool("IsWalking", true);
             animator.SetBool("IsRunning", false);
 
+           
         }
 
         if (Input.GetButtonDown("Dodge"))
@@ -141,10 +152,18 @@ public class PlayerMove : MonoBehaviour
     }
     void Attack()
     {
+       
         if (Input.GetMouseButtonDown(0))  // Left mouse button
         {
+            
+            if(CompareTag("Monster"))
+            {
+                GameObject.Find("Monster");
+            }
             animator.SetTrigger("Attack");
             isattack = true;
+            
+
         }
         else
         {
@@ -152,6 +171,41 @@ public class PlayerMove : MonoBehaviour
         }
         //공격 시 데미지 부여 -- 콜라이더 충돌시 상대방에게 데미지 부여
     }
+    void shield()
+    {
+        if (Input.GetMouseButton(1))
+        {
+            // 쉴드 모션
+
+            //쉴드에 상대방 콜라이더가 충돌하면 설정된 데미지의 *0.5
+
+
+        }
+        
+       // if(Input.GetKeyDown())
+        {
+            //F를 누르면 쉴드로 공격하는 모션
+
+            //방패와 적 콜라이더가 부딪히면 상대방은 10의 데미지를 입는다
+
+
+        }
+
+
+    }
+    public void GetDamage(int damage)
+    {
+        if (currentHP > 0)
+        {
+            currentHP -= damage;
+            nextHP = currentHP;
+            currentTime = 0.0f; // 새 데미지를 받을 때마다 currentTime을 초기화
+            //totalDamageTaken += damage; // 누적 데미지 업데이트
+            
+        }
+    }
+    //IEnumerator Stamina()
+    
 }
     
 

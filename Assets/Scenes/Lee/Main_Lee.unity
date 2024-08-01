@@ -1400,7 +1400,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2031382173}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.17197154, y: -0.017133126, z: 0.0029914358, w: 0.9849484}
+  m_LocalRotation: {x: 0.17197154, y: -0.01713313, z: 0.0029914363, w: 0.9849484}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -3312,7 +3312,8 @@ MonoBehaviour:
   mystate: 32
   animator: {fileID: 0}
   maxHP: 100
-  potionprefab: {fileID: 0}
+  potionprefab: {fileID: 8523882254425667481, guid: 3255dae3378a05d4684378394260f80b,
+    type: 3}
   healAmount: 20
 --- !u!4 &6413305654855321679
 Transform:
