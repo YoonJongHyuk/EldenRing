@@ -28,14 +28,10 @@ public class Test : MonoBehaviour
         else if (other.tag == "Weapon")
         {
             Arrow arrow = other.GetComponent<Arrow>();
-         //
-         //
-         //
-         //
-         //
-         //currentHP -= Sward.damage;
-            
-            print("Range" + currentHP);
+            Sward Sward = other.GetComponent<Sward>();
+            currentHP -= Sward.damage;
+
+
         }
     }
 }

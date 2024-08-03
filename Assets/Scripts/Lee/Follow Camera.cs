@@ -1,38 +1,62 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 
-public class FollowCamera : MonoBehaviour
+public class FollowCamera: MonoBehaviour
 {
     public Transform target;
-    public float rotX;
-    public bool dynamicCam = true;
-    public float followSpeed = 3.0f;
-    public Vector3 offset;
+    public float followSpeed = 10.0f;
+    public float Sensitivity = 100.0f;
+    public float ClampAngle = 70.0f;
 
+    float rotX;
+    float rotY;
+
+    public Transform realCamera;
+    public Vector3 dirNormalized;
+    public Vector3 finalDir;
+    public float minDistance;
+    public float maxDistance;
+    public float finalDistance = 10f;
+    public float smoothness = 10f;
     private void Start()
     {
-        // 플레이어를 찾고 위치값을 받아 타겟으로 덮어씌운다.
-        target = GameObject.Find("Player").transform;
-    }
-    void Update()
-    {
-       if(target != null )
-        {
-            // 카메라의 위치를 타겟 트랜스폼의 위치로 지정한다.
-            if(!dynamicCam)
-            {
-                transform.position = target.position + offset;
-            }
-            else
-            {
-                transform.position = Vector3.Lerp(transform.position, target.position, followSpeed * Time.deltaTime);
-            }
-            // 카메라의 정면 방향을 타겟의 정면 방향으로 설정한다
-            transform.forward = target.forward;
-            // 사용자의 마우스 상하 회전 값을 x축 회전으로 넣는다
-            transform.eulerAngles = new Vector3(-rotX, transform.eulerAngles.y, transform.eulerAngles.z);
-        }
+        rotX = transform.localRotation.eulerAngles.x;
+        rotY = transform.localRotation.eulerAngles.y;
 
+        dirNormalized = realCamera.localPosition.normalized;
+        finalDistance = realCamera.localPosition.magnitude;
+
+       // Cursor.lockState = CursorLockMode.Locked;
+      //  Cursor.visible = false;
+    }
+    private void Update()
+    {
+        rotX += Input.GetAxis("Mouse X") * Sensitivity * Time.deltaTime;
+        rotY += Input.GetAxis("Mouse Y") * Sensitivity * Time.deltaTime;
+
+        rotX = Mathf.Clamp(rotX, -ClampAngle, ClampAngle);
+        Quaternion rot = Quaternion.Euler(rotY , rotX, 0);
+        transform.rotation = rot;
+    }
+    private void LateUpdate()
+    {
+        transform.position = Vector3.MoveTowards(transform.position, target.position, followSpeed * Time.deltaTime);
+
+        finalDir = transform.TransformPoint(dirNormalized * maxDistance);
+
+        RaycastHit hit;
+
+        if(Physics.Linecast(transform.position, finalDir, out hit))
+        {
+            finalDistance = Mathf.Clamp(hit.distance, minDistance, maxDistance);
+            
+        }
+        else
+        {
+            finalDistance = maxDistance;
+        }
+        realCamera.localPosition = Vector3.Lerp(realCamera.localPosition, dirNormalized * finalDistance, Time.deltaTime * smoothness);
     }
 }
