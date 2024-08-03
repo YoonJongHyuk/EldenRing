@@ -27,7 +27,9 @@ public class PlayerMove : MonoBehaviour
     //공격
     public float attackRange = 1.0f;
     public float attackPower = 10.0f;
+    float fireDelay;
     bool isattack;
+    GameObject Sward;
     //체력
     float MaxHP = 100;
     float currentHP;
@@ -152,16 +154,26 @@ public class PlayerMove : MonoBehaviour
     }
     void Attack()
     {
+        if (Sward == null)
+            return;
+
+        fireDelay += Time.deltaTime;
+        isattack = false;
        
-        if (Input.GetMouseButtonDown(0))  // Left mouse button
-        {
-            
-            if(CompareTag("Monster"))
-            {
-                GameObject.Find("Monster");
-            }
-            animator.SetTrigger("Attack");
+        if (Input.GetMouseButtonDown(0) && !isDodge)  // Left mouse button
+        {// 어택구현 아직안됨
+
+            fireDelay = 0;
             isattack = true;
+
+
+
+            if(Sward != null)
+            {
+                // Sward = Sward.GetComponent<>();
+                Sward.gameObject.SetActive(true);
+
+            }
             
 
         }

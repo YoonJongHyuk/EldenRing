@@ -4,15 +4,13 @@ using UnityEngine;
 
 public class Item : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+    public enum Type { shield, Weapon, Arrow ,potion };
+    public Type type;
+    public int Value;
 
-    // Update is called once per frame
     void Update()
     {
-        
+        transform.Rotate(Vector3.up * 0* Time.deltaTime);
     }
+    
 }

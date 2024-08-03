@@ -8,6 +8,7 @@ public class FollowCamera : MonoBehaviour
     public float rotX;
     public bool dynamicCam = true;
     public float followSpeed = 3.0f;
+    public Vector3 offset;
 
     private void Start()
     {
@@ -21,7 +22,7 @@ public class FollowCamera : MonoBehaviour
             // 카메라의 위치를 타겟 트랜스폼의 위치로 지정한다.
             if(!dynamicCam)
             {
-                transform.position = target.position;
+                transform.position = target.position + offset;
             }
             else
             {

@@ -5,6 +5,10 @@ TagManager:
   serializedVersion: 2
   tags:
   - Ground
+  - Monster
+  - Weapon
+  - Item
+  - Melee
   layers:
   - Default
   - TransparentFX
@@ -19,9 +23,9 @@ TagManager:
   - Ground
   - Player
   - Item
-  - 
-  - 
-  - 
+  - Monster
+  - Sward
+  - Shield
   - 
   - 
   - 
