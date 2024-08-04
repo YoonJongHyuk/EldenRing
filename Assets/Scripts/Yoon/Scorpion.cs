@@ -24,6 +24,9 @@ namespace yoon
         public int thisHP;
 
         public bool isDead;
+        bool isAttackTrue;
+
+        public Animator anim;
 
 
         float damping = 3f;
@@ -32,12 +35,11 @@ namespace yoon
 
         Transform player;
         Transform thisTransform;
-        Vector3 dir;
 
         public Transform wayPointGroup; // 인스펙터 창에서 할당할 수 있도록 public으로 설정
         private Transform[] points;
 
-        int scorpionDamage = 5;
+        public int scorpionDamage = 5;
         int scorpionHP;
         int nextHP;
         float currentTime = 0;
@@ -46,7 +48,7 @@ namespace yoon
         private int totalDamageTaken = 0; // 누적 데미지
 
 
-        TestScripts playerScript;
+        PlayerContorler playerScript;
         NavMeshAgent navMeshAgent;
 
         [SerializeField]
@@ -106,10 +108,6 @@ namespace yoon
             hpText.text = totalDamageTaken.ToString();
         }
 
-        public override void Attack()
-        {
-            playerScript.hpCount -= scorpionDamage;
-        }
 
         public override void Die()
         {
@@ -155,8 +153,10 @@ namespace yoon
         public override void EnterState()
         {
             isDead = false;
+            isAttackTrue = false;
             thisTransform = GetComponent<Transform>();
             navMeshAgent = GetComponent<NavMeshAgent>();
+            anim = GetComponent<Animator>();
 
             if (wayPointGroup != null)
             {
@@ -169,7 +169,7 @@ namespace yoon
             }
 
             player = GameObject.FindWithTag("Player").transform;
-            playerScript = player.GetComponent<TestScripts>();
+            playerScript = player.GetComponent<PlayerContorler>();
         }
 
         public override void UpdateState()
@@ -223,11 +223,36 @@ namespace yoon
 
 
         // 플레이어와 충돌 시 공격
-        private void OnTriggerEnter(Collider other)
+        private void OnCollisionStay(Collision collision)
         {
-            if (other.gameObject.CompareTag("Player"))
+            if (isAttackTrue == false)
             {
-                Attack();
+                StartCoroutine(AttackDamage(collision));
+            }
+        }
+
+        
+
+        IEnumerator AttackDamage(Collision collision)
+        {
+            print("테스트1");
+            isAttackTrue = true;
+            if (collision.gameObject.CompareTag("Player"))
+            {
+                PlayerContorler player = collision.transform.GetComponent<PlayerContorler>();
+                player.GetDamage(scorpionDamage);
+            }
+            yield return new WaitForSeconds(2.0f);
+            isAttackTrue = false;
+        }
+
+
+        private void OnCollisionExit(Collision collision)
+        {
+            if (collision.gameObject.CompareTag("Player"))
+            {
+                isAttackTrue = false;
+                StopAllCoroutines();
             }
         }
 

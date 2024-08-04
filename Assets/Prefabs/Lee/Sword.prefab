@@ -164,8 +164,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   type: 0
-  damage: 10
   meleeArea: {fileID: 4934118366207983163}
-  attackPower: 10
+  attackPower: 25
   attackRange: 3
   rate: 1
+  arrowPrefab: {fileID: 0}
+  arrowSpawnPosition: {fileID: 0}

@@ -11,7 +11,7 @@ public class PlayerCheck : MonoBehaviour
     {
         if (other.gameObject.CompareTag("Player"))
         {
-            TestScripts player = other.gameObject.GetComponent<TestScripts>();
+            PlayerContorler player = other.gameObject.GetComponent<PlayerContorler>();
             player.hiding = false;
         }
     }
