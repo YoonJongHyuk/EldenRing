@@ -48,6 +48,11 @@ public class PlayerContorler : MonoBehaviour
     private List<Scorpion> scorps; // 충돌한 Monster 객체
     private List<Scorpion> hitMonster;
 
+    // 쉴드 관련 변수들
+    public GameObject ShieldPrefab;
+    bool isShieldActive = false; //방패 활성화 상태
+    
+
     // 화살 관련 변수들
     public Transform ArrowPos; // 화살 위치
     public GameObject Arrow2; // 화살 오브젝트
@@ -91,6 +96,7 @@ public class PlayerContorler : MonoBehaviour
         _hpBar.value = currentHP;
         _nextHpBar.maxValue = currentHP; // nextHP 슬라이더 초기화
         _nextHpBar.value = currentHP;
+        isShieldActive =ShieldPrefab.GetComponent<BoxCollider>(); // 쉴드 박스콜라이더 가지고옴
     }
 
     // Update는 매 프레임 호출됩니다.
@@ -105,6 +111,7 @@ public class PlayerContorler : MonoBehaviour
         Swapout(); // 무기 교체 해제 처리
         potion(); // 포션 사용 처리
         HPBar();
+        Shield();
     }
 
     void HPBar()
@@ -242,13 +249,6 @@ public class PlayerContorler : MonoBehaviour
 
             // 화살 공격 (미구현)
             //if (Input.GetButtonUp("Fire2"))
-            //{
-            //    equipWeapon.use();
-            //    animator.SetTrigger("isArrow");
-            //    AttackDelay = 0;
-            //}
-
-
         }
 
     }
@@ -300,22 +300,29 @@ public class PlayerContorler : MonoBehaviour
     {
         isSwap = false; // 무기 교체 상태 해제
     }
-
-    // 아이템 상호작용 처리
-    //void Interation()
-    //{
-    //    if (iDown && nearObject != null && !isJump && !isDodge)
-    //    {
-    //        if (nearObject.tag == "Weapon")
-    //        {
-    //            Item item = nearObject.GetComponent<Item>();
-    //            int weaponIndex = item.Value;
-    //            hasWeapone[weaponIndex] = true; // 무기 보유 설정
-
-    //            Destroy(nearObject); // 무기 오브젝트 제거
-    //        }
-    //    }
-    //}
+    void Shield()
+    {
+       // ShieldCollider = ShieldPrefab.GetComponent<BoxCollider>();
+        if(Input.GetMouseButton(1))
+        {
+           // if (isShieldActive) return; // 쉴드가 이미 활성화 되어있다면 반환
+            
+            isShieldActive = true; // 쉴드상태 트루 변경
+            animator.SetTrigger("isShield"); // 애니메이션 재생
+            
+            //쉴드상태가 트루일떄 박스콜라이더와 충돌하면 applyDamage 무시 -- 이거 물어보자
+            print("쉴드중");
+            
+        }
+        else
+        {
+            //쉴드상태 false 변경 
+            //쉴드 박스콜라이더 비활성화 
+            isShieldActive = false;
+            animator.SetBool("isShieldHit", false);
+        }
+        
+    }
 
     // 데미지 처리 (몬스터의 데미지 입력 처리 미구현)
     void OnTriggerEnter(Collider other)
@@ -330,12 +337,7 @@ public class PlayerContorler : MonoBehaviour
             }
 
         }
-        // 방패로 막았을 때 절반 데미지
-        if (Input.GetButton("Fire2"))
-        {
-            animator.SetBool("shild", true); // 방패 애니메이션 설정
-            // Monster.damage * 0.5 = currentHP;
-        }
+        
     }
 
     // 애니메이션 이벤트가 호출할 메서드
@@ -353,26 +355,6 @@ public class PlayerContorler : MonoBehaviour
             hitMonster.Clear(); // 데미지를 입힌 후 리스트 초기화
         }
     }
-
-
-
-    // 근처 아이템 인식 및 상호작용
-    //void OnTriggerStay(Collider other)
-    //{
-    //    iDown = Input.GetButtonDown("Interation");
-    //    if (other.tag == "Weapon")
-    //    {
-    //        nearObject = other.gameObject; // 근처 무기 오브젝트 설정
-    //    }
-    //}
-
-    //void OnTriggerExit(Collider other)
-    //{
-    //    if (other.tag == "Weapon")
-    //    {
-    //        nearObject = null; // 근처 무기 오브젝트 해제
-    //    }
-    //}
 
     // 데미지 입기 처리 (리지드바디를 사용하여 데미지 처리 미구현)
     void TakeDamage(float atkPower, Vector3 hitDir, Transform attacker)
