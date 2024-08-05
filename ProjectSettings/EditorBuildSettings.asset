@@ -6,9 +6,6 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/SampleScene.unity
-    guid: 99c9720ab356a0642a771bea13969a05
-  - enabled: 1
-    path: Assets/Scenes/Lee/Main_Lee.unity
-    guid: de033d40b3bd5ba4a88b9e3f9f1cd5cd
+    path: Assets/Scenes/Yoon/PrototypeScene.unity
+    guid: 6260f5f25f99a38429fedb3bc9c7fd0b
   m_configObjects: {}

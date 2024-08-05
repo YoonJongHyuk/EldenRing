@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEditor.Overlays;
 using UnityEngine;
 using yoon;
 using UnityEngine.UI;
@@ -46,7 +45,8 @@ public class PlayerContorler : MonoBehaviour
     // 공격 관련 변수들
     bool MeleeAttack; // 근접 공격 여부
     float AttackDelay; // 공격 지연 시간
-    private Scorpion monster; // 충돌한 Monster 객체
+    private List<Scorpion> scorps; // 충돌한 Monster 객체
+    private List<Scorpion> hitMonster;
 
     // 화살 관련 변수들
     public Transform ArrowPos; // 화살 위치
@@ -75,6 +75,8 @@ public class PlayerContorler : MonoBehaviour
         rb = GetComponent<Rigidbody>(); // 리지드바디 컴포넌트 가져오기
         animator = GetComponentInChildren<Animator>(); // 자식 객체에서 애니메이터 컴포넌트 가져오기
         hiding = true;
+        scorps = new List<Scorpion>(); // Scorpion 리스트 초기화
+        hitMonster = new List<Scorpion>(); // hitMonster 리스트 초기화
     }
 
     void Start()
@@ -320,11 +322,13 @@ public class PlayerContorler : MonoBehaviour
     {
         if (other.gameObject.CompareTag("Monster"))
         {
-            monster = other.GetComponent<Scorpion>();
-            if (monster != null)
+            Scorpion mob = other.GetComponent<Scorpion>();
+            if (mob != null && !hitMonster.Contains(mob))
             {
-                monster.anim.SetTrigger("Hit"); // 피격 애니메이션 설정
+                hitMonster.Add(mob);
+                mob.anim.SetTrigger("Hit"); // 피격 애니메이션 설정
             }
+
         }
         // 방패로 막았을 때 절반 데미지
         if (Input.GetButton("Fire2"))
@@ -337,9 +341,16 @@ public class PlayerContorler : MonoBehaviour
     // 애니메이션 이벤트가 호출할 메서드
     public void ApplyDamage()
     {
-        if (monster != null)
+        if (hitMonster != null)
         {
-            monster.GetDamage(equipWeapon.attackPower);
+            foreach (Scorpion monster in hitMonster)
+            {
+                if (monster != null)
+                {
+                    monster.GetDamage(equipWeapon.attackPower);
+                }
+            }
+            hitMonster.Clear(); // 데미지를 입힌 후 리스트 초기화
         }
     }
 
