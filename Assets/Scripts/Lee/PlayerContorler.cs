@@ -50,8 +50,8 @@ public class PlayerContorler : MonoBehaviour
 
     // 쉴드 관련 변수들
     public GameObject ShieldPrefab;
-    bool isShieldActive = false; //방패 활성화 상태
-    
+    public bool isShieldActive = false; //방패 상태
+    public bool isShieldHit = false; // 맞는 방패상태
 
     // 화살 관련 변수들
     public Transform ArrowPos; // 화살 위치
@@ -73,6 +73,8 @@ public class PlayerContorler : MonoBehaviour
 
     [SerializeField]
     private Slider _nextHpBar; // nextHP 용 슬라이더 추가
+
+    Scorpion Scorpion;
 
     // Start는 첫 프레임 업데이트 전에 호출됩니다.
     private void Awake()
@@ -212,7 +214,7 @@ public class PlayerContorler : MonoBehaviour
         {
             dodgeVec = moveVec; // 구르기 벡터 설정
             rb.AddForce(Vector3.up * 5, ForceMode.Impulse); // 위로 힘을 가해 구르기
-            animator.SetBool("isDodge", true); // 구르기 애니메이션 설정
+            animator.SetTrigger("isDodge"); // 구르기 애니메이션 설정
             isDodge = true; // 구르기 상태 설정
             Invoke("DodgeOut", 0.5f); // 0.5초 후 구르기 해제
             currentStamina -= currentStamina - 3; // 스태미나 소모
@@ -310,11 +312,18 @@ public class PlayerContorler : MonoBehaviour
             isShieldActive = true; // 쉴드상태 트루 변경
             animator.SetTrigger("isShield"); // 애니메이션 재생
             
-            //쉴드상태가 트루일떄 박스콜라이더와 충돌하면 applyDamage 무시 -- 이거 물어보자
+            //isShieldActive가 true일떄 스콜피온이 공격을 안하는걸로 되어있는데 ... 내 생각엔 상대가 공격하는데 그 데미지를 무시하고 한번 무시하면 isShieldActive 가 false 되는건데 어... 쉽지않음 보류
+
             print("쉴드중");
-            
+            if(isShieldActive && Scorpion.isAttackTrue ) // 쉴드상태일때 맞으면 Shield hit 애니메이션 재생 
+            {
+                isShieldHit = true;
+                animator.SetBool("isShieldHit", true);
+                print("shield hit!");
+                isShieldActive = false;
+            }
         }
-        else
+        else 
         {
             //쉴드상태 false 변경 
             //쉴드 박스콜라이더 비활성화 

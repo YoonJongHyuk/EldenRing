@@ -24,7 +24,7 @@ namespace yoon
         public int thisHP;
 
         public bool isDead;
-        bool isAttackTrue;
+        public bool isAttackTrue;
 
         public Animator anim;
 
@@ -225,7 +225,7 @@ namespace yoon
         // 플레이어와 충돌 시 공격
         private void OnCollisionStay(Collision collision)
         {
-            if (isAttackTrue == false)
+            if (isAttackTrue == false && !playerScript.isShieldActive)
             {
                 StartCoroutine(AttackDamage(collision));
             }
