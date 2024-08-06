@@ -9,6 +9,7 @@ TagManager:
   - Weapon
   - Item
   - Melee
+  - WAY_POINT
   layers:
   - Default
   - TransparentFX
@@ -31,7 +32,7 @@ TagManager:
   - 
   - 
   - 
-  - 
+  - MonsterHPBar
   - 
   - 
   - 
