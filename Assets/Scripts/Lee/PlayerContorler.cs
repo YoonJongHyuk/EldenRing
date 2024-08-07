@@ -9,6 +9,7 @@ public class PlayerContorler : MonoBehaviour
     // 이동 관련 변수들
     public float MoveSpeed; // 이동 속도
     float h, v; // 수평 및 수직 입력값
+    bool isMove;
     bool Run; // 달리기 여부
     Vector3 moveVec; // 이동 벡터
     public Transform cameraTransform; // 카메라 Transform
@@ -20,6 +21,9 @@ public class PlayerContorler : MonoBehaviour
     // 구르기 관련 변수들
     bool isDodge; // 구르기 상태
     Vector3 dodgeVec; // 구르기 벡터
+
+    // 백스탭 관련 변수
+    bool Backstep = false;
 
     // 무기 관련 변수들
     //public GameObject nearObject; // 근처 오브젝트
@@ -47,6 +51,7 @@ public class PlayerContorler : MonoBehaviour
     float AttackDelay; // 공격 지연 시간
     private List<Scorpion> scorps; // 충돌한 Monster 객체
     private List<Scorpion> hitMonster;
+    bool isAttack;
 
     // 쉴드 관련 변수들
     public GameObject ShieldPrefab;
@@ -114,6 +119,8 @@ public class PlayerContorler : MonoBehaviour
         potion(); // 포션 사용 처리
         HPBar();
         Shield();
+        BackStep();
+        Dodge();
     }
 
     void HPBar()
@@ -143,7 +150,7 @@ public class PlayerContorler : MonoBehaviour
     {
         h = Input.GetAxisRaw("Horizontal"); // 수평 입력 값 가져오기
         v = Input.GetAxisRaw("Vertical"); // 수직 입력 값 가져오기
-        Run = Input.GetButton("Run"); // 달리기 입력 값 가져오기
+        Run = Input.GetButton("shift"); // 달리기 입력 값 가져오기
 
         // 카메라의 forward와 right 방향 가져오기
         Vector3 cameraForward = cameraTransform.forward;
@@ -160,7 +167,7 @@ public class PlayerContorler : MonoBehaviour
         // 이동 벡터 계산
         moveVec = (cameraForward * v + cameraRight * h).normalized;
         if (isDodge)
-            moveVec = dodgeVec; // 구르기 중이라면 구르기 벡터로 이동
+           // moveVec = dodgeVec; // 구르기 중이라면 구르기 벡터로 이동
 
         // 이동 처리
         if (Run)
@@ -192,8 +199,30 @@ public class PlayerContorler : MonoBehaviour
         if (Input.GetButtonDown("Jump") && !isJump)
         {
             rb.AddForce(Vector3.up * 5, ForceMode.Impulse); // 위로 힘을 가해 점프
-            animator.SetBool("isJUmp", true); // 점프 애니메이션 설정
+            animator.SetTrigger("isJump"); // 점프 애니메이션 설정
             isJump = true; // 점프 상태 설정
+        }
+        
+        isJump = false;
+    }
+
+    void BackStep()
+    {
+        if (Input.GetKeyDown(KeyCode.N) && !Run && !isJump && !isShieldActive && !isShieldHit)
+        {
+            Backstep = true;
+            Vector3 backVec = -transform.forward * 3.0f;
+
+            transform.Translate(backVec, Space.World);
+
+            animator.SetBool("Backstep", true);
+
+        }
+        else
+        {
+            animator.SetBool("Backstep", false);
+           // Backstep = false;
+
         }
     }
 
@@ -210,16 +239,22 @@ public class PlayerContorler : MonoBehaviour
     // 구르기 처리 (애니메이션 없음)
     void Dodge()
     {
-        if (Input.GetButtonDown("Dodge") && !isJump)
+        if (Input.GetKeyDown(KeyCode.M) && !isJump)
         {
-            dodgeVec = moveVec; // 구르기 벡터 설정
-            rb.AddForce(Vector3.up * 5, ForceMode.Impulse); // 위로 힘을 가해 구르기
-            animator.SetTrigger("isDodge"); // 구르기 애니메이션 설정
+            dodgeVec = transform.forward * 3.0f;// 구르기 벡터 설정
+            transform.Translate(dodgeVec, Space.World);
+           // rb.AddForce(Vector3.up * 5, ForceMode.Impulse); // 위로 힘을 가해 구르기
+            animator.SetBool("isDodge", true); // 구르기 애니메이션 설정
             isDodge = true; // 구르기 상태 설정
             Invoke("DodgeOut", 0.5f); // 0.5초 후 구르기 해제
             currentStamina -= currentStamina - 3; // 스태미나 소모
         }
-        isDodge = false; // 구르기 상태 해제
+        else
+        {
+            // isDodge = false; // 구르기 상태 해제
+            animator.SetBool("isDodge", false);
+
+        }
     }
 
     public void GetDamage(int damage)
@@ -244,7 +279,7 @@ public class PlayerContorler : MonoBehaviour
 
         if (Input.GetButtonDown("Fire1") && !isDodge && !isSwap)
         {
-
+            isAttack = true;
             animator.SetTrigger("isAttack"); // 공격 애니메이션 설정
 
             currentStamina -= currentStamina - 4; // 스태미나 소모
@@ -252,7 +287,7 @@ public class PlayerContorler : MonoBehaviour
             // 화살 공격 (미구현)
             //if (Input.GetButtonUp("Fire2"))
         }
-
+        isAttack = false;
     }
 
     // 회복 아이템 사용 (K 키 누르면 작동)
