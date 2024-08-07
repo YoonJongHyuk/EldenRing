@@ -4086,6 +4086,12 @@ Transform:
   - {fileID: 957227606}
   m_Father: {fileID: 383284817}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1374491049 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1389201483412086964, guid: 1d0753f10553b89499484c6df2f008d2,
+    type: 3}
+  m_PrefabInstance: {fileID: 79814671}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1377830841
 GameObject:
   m_ObjectHideFlags: 0
@@ -4541,6 +4547,9 @@ MonoBehaviour:
   healAmount: 50
   maxHP: 100
   currentHP: 10
+  ShieldPrefab: {fileID: 1374491049}
+  isShieldActive: 0
+  isShieldHit: 0
   ArrowPos: {fileID: 244401889}
   Arrow2: {fileID: 6713457222960003005, guid: d73af269e6de2fd46b60be9de2654805, type: 3}
   maxStamina: 100
