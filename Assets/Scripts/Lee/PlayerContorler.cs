@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using yoon;
 using UnityEngine.UI;
+using UnityEditor.Experimental.GraphView;
 
 public class PlayerContorler : MonoBehaviour
 {
@@ -24,6 +25,7 @@ public class PlayerContorler : MonoBehaviour
 
     // 백스탭 관련 변수
     bool Backstep = false;
+    Vector3 BackVec;
 
     // 무기 관련 변수들
     //public GameObject nearObject; // 근처 오브젝트
@@ -58,6 +60,11 @@ public class PlayerContorler : MonoBehaviour
     public bool isShieldActive = false; //방패 상태
     public bool isShieldHit = false; // 맞는 방패상태
 
+    //shift 묶기 
+    //public float speedThreshold = 0.1f; //움직임을 판단할 속도 임계값
+    //public float shiftHoldTime = 1.0f; // shift를 누르고 있어야 하는 시간
+    //float shiftPressTime;
+
     // 화살 관련 변수들
     public Transform ArrowPos; // 화살 위치
     public GameObject Arrow2; // 화살 오브젝트
@@ -67,11 +74,11 @@ public class PlayerContorler : MonoBehaviour
     Rigidbody rb; // 리지드바디
 
     // 스태미나 관련 변수들
-    public float maxStamina = 10.0f; // 최대 스태미나
-    public float currentStamina = 10.0f; // 현재 스태미나
-    public float staminaRecoveryRate = 4.0f; // 스태미나 회복 속도
-    public float staminaDrainRateAttack = 2.0f; // 공격 시 스태미나 소모량
-    public float staminaDrainRateDodge = 3.0f; // 구르기 시 스태미나 소모량
+    public float maxStamina = 1.0f; // 최대 스태미나
+    public float currentStamina = 1.0f; // 현재 스태미나
+    public float staminaRecoveryRate = 0.4f; // 스태미나 회복 속도
+    public float staminaDrainRateAttack = 0.2f; // 공격 시 스태미나 소모량
+    public float staminaDrainRateDodge = 0.3f; // 구르기 시 스태미나 소모량
 
     [SerializeField]
     private Slider _hpBar;
@@ -103,7 +110,7 @@ public class PlayerContorler : MonoBehaviour
         _hpBar.value = currentHP;
         _nextHpBar.maxValue = currentHP; // nextHP 슬라이더 초기화
         _nextHpBar.value = currentHP;
-        isShieldActive =ShieldPrefab.GetComponent<BoxCollider>(); // 쉴드 박스콜라이더 가지고옴
+        isShieldActive = ShieldPrefab.GetComponent<BoxCollider>(); // 쉴드 박스콜라이더 가지고옴
     }
 
     // Update는 매 프레임 호출됩니다.
@@ -117,10 +124,12 @@ public class PlayerContorler : MonoBehaviour
         Swap(); // 무기 교체 처리
         Swapout(); // 무기 교체 해제 처리
         potion(); // 포션 사용 처리
-        HPBar();
-        Shield();
-        BackStep();
-        Dodge();
+        HPBar(); // 체력바
+        Shield(); // 쉴드
+                  // Shift(); // shift키 모음
+        BackStep(); // 빽스탭
+        Dodge(); // 구르기
+        Stamina(); // 스테미나 처리 
     }
 
     void HPBar()
@@ -145,6 +154,24 @@ public class PlayerContorler : MonoBehaviour
         }
     }
 
+    void Stamina()
+    {
+        //     // 스태미나 관련 변수들
+        //public float maxStamina = 10.0f; // 최대 스태미나
+        //public float currentStamina = 10.0f; // 현재 스태미나
+        //public float staminaRecoveryRate = 4.0f; // 스태미나 회복 속도
+        //public float staminaDrainRateAttack = 2.0f; // 공격 시 스태미나 소모량
+        //public float staminaDrainRateDodge = 3.0f; // 구르기 시 스태미나 소모량
+
+        // 스태미나 회복 처리
+        currentStamina += Mathf.Clamp(currentStamina + staminaRecoveryRate * Time.deltaTime, 0, maxStamina);
+        if (currentStamina >= maxStamina)
+        {
+            currentStamina = maxStamina;
+        }
+
+    }
+
     // 기본 움직임 처리
     void Move()
     {
@@ -166,25 +193,29 @@ public class PlayerContorler : MonoBehaviour
 
         // 이동 벡터 계산
         moveVec = (cameraForward * v + cameraRight * h).normalized;
-        if (isDodge)
-           // moveVec = dodgeVec; // 구르기 중이라면 구르기 벡터로 이동
 
-        // 이동 처리
+
+        //이동 처리
         if (Run)
         {
+            Run = true;
             transform.position += moveVec * MoveSpeed * 2.0f * Time.deltaTime; // 달리기 속도로 이동
             animator.SetBool("isRun", true); // 달리기 애니메이션 설정
+            currentStamina -= Mathf.Clamp(currentStamina + staminaRecoveryRate * Time.deltaTime, 0, maxStamina);
+
         }
         else
         {
+            Run = false;
             transform.position += moveVec * MoveSpeed * Time.deltaTime; // 걷기 속도로 이동
             animator.SetBool("isRun", false); // 달리기 애니메이션 해제
+
         }
 
         animator.SetBool("isWalk", moveVec != Vector3.zero); // 걷기 애니메이션 설정
+        Run = false;
+        currentStamina += Mathf.Clamp(currentStamina + staminaRecoveryRate * Time.deltaTime, 0, maxStamina);
 
-        // 스태미나 회복 처리
-        currentStamina = Mathf.Clamp(currentStamina + staminaRecoveryRate * Time.deltaTime, 0, maxStamina);
     }
 
     // 회전 처리 (아직 마우스 입력 미구현)
@@ -202,27 +233,28 @@ public class PlayerContorler : MonoBehaviour
             animator.SetTrigger("isJump"); // 점프 애니메이션 설정
             isJump = true; // 점프 상태 설정
         }
-        
+
         isJump = false;
     }
 
     void BackStep()
     {
-        if (Input.GetKeyDown(KeyCode.N) && !Run && !isJump && !isShieldActive && !isShieldHit)
+
+        if (Input.GetKeyDown(KeyCode.N) && BackVec.magnitude == 0)
         {
             Backstep = true;
             Vector3 backVec = -transform.forward * 3.0f;
 
             transform.Translate(backVec, Space.World);
-
             animator.SetBool("Backstep", true);
-
+            currentStamina = currentStamina - staminaDrainRateDodge;
+            
         }
         else
         {
             animator.SetBool("Backstep", false);
-           // Backstep = false;
-
+            Backstep = false;
+            currentStamina += Mathf.Clamp(currentStamina + staminaRecoveryRate * Time.deltaTime, 0, maxStamina);
         }
     }
 
@@ -236,26 +268,84 @@ public class PlayerContorler : MonoBehaviour
         }
     }
 
-    // 구르기 처리 (애니메이션 없음)
+    //구르기 모션중 0.33초간 무적
     void Dodge()
     {
-        if (Input.GetKeyDown(KeyCode.M) && !isJump)
+        if (Input.GetKeyDown(KeyCode.M))// && isMove && !isJump)
         {
             dodgeVec = transform.forward * 3.0f;// 구르기 벡터 설정
             transform.Translate(dodgeVec, Space.World);
-           // rb.AddForce(Vector3.up * 5, ForceMode.Impulse); // 위로 힘을 가해 구르기
+            // rb.AddForce(Vector3.up * 5, ForceMode.Impulse); // 위로 힘을 가해 구르기
             animator.SetBool("isDodge", true); // 구르기 애니메이션 설정
             isDodge = true; // 구르기 상태 설정
             Invoke("DodgeOut", 0.5f); // 0.5초 후 구르기 해제
-            currentStamina -= currentStamina - 3; // 스태미나 소모
+            currentStamina = currentStamina - staminaDrainRateDodge; // 스태미나 소모
+            
         }
         else
         {
-            // isDodge = false; // 구르기 상태 해제
+            isDodge = false; // 구르기 상태 해제
             animator.SetBool("isDodge", false);
+            CancelInvoke();
+            currentStamina += Mathf.Clamp(currentStamina + staminaRecoveryRate * Time.deltaTime, 0, maxStamina);
 
         }
     }
+
+    //void Shift()
+    //{
+    //    bool isMoving = rb.velocity.magnitude > speedThreshold;
+    //    bool isShiftPressed = Input.GetButton("shift");
+    //    if(isShiftPressed)
+    //    {
+    //        if (!isMoving) // 움직이지 않을떄 빽스탭
+    //        {
+    //            Backstep = true;
+    //            Vector3 backVec = -transform.forward * 3.0f;
+
+    //            transform.Translate(backVec, Space.World);
+    //            animator.SetBool("Backstep", true);
+    //            currentStamina = currentStamina - staminaDrainRateDodge;
+    //            print(currentStamina);
+    //        }
+    //        else // 움직이고 있을 때 
+    //        {
+    //            dodgeVec = transform.forward * 3.0f;// 구르기 벡터 설정
+    //            transform.Translate(dodgeVec, Space.World);
+    //            // rb.AddForce(Vector3.up * 5, ForceMode.Impulse); // 위로 힘을 가해 구르기
+    //            animator.SetBool("isDodge", true); // 구르기 애니메이션 설정
+    //            isDodge = true; // 구르기 상태 설정
+    //            Invoke("DodgeOut", 0.5f); // 0.5초 후 구르기 해제
+    //            currentStamina = currentStamina - staminaDrainRateDodge; // 스태미나 소모
+
+    //            if (Time.time - shiftPressTime >= shiftHoldTime) //shift키를 계속 누르고 있는지 확인 
+    //            {
+
+    //                Run = true;
+    //                transform.position += moveVec * MoveSpeed * 2.0f * Time.deltaTime; // 달리기 속도로 이동
+    //                animator.SetBool("isRun", true); // 달리기 애니메이션 설정
+    //                currentStamina -= Mathf.Clamp(currentStamina + staminaRecoveryRate * Time.deltaTime, 0, maxStamina);
+    //            }
+
+    //        }
+    //    }
+    //    else
+    //    {
+    //        Run = false;
+    //        transform.position += moveVec * MoveSpeed * Time.deltaTime; // 걷기 속도로 이동
+    //        animator.SetBool("isRun", false); // 달리기 애니메이션 해제
+
+    //        isDodge = false; // 구르기 상태 해제
+    //        animator.SetBool("isDodge", false);
+    //        CancelInvoke();
+
+    //        animator.SetBool("Backstep", false);
+    //        Backstep = false;
+    //        currentStamina += Mathf.Clamp(currentStamina + staminaRecoveryRate * Time.deltaTime, 0, maxStamina);
+
+    //        shiftPressTime = Time.time; // shift 키를 누르고 있지 않으면 타이머 리셋
+    //    }
+    //}
 
     public void GetDamage(int damage)
     {
@@ -282,18 +372,20 @@ public class PlayerContorler : MonoBehaviour
             isAttack = true;
             animator.SetTrigger("isAttack"); // 공격 애니메이션 설정
 
-            currentStamina -= currentStamina - 4; // 스태미나 소모
-
+            currentStamina -= currentStamina - staminaDrainRateAttack; // 스태미나 소모
+            
             // 화살 공격 (미구현)
             //if (Input.GetButtonUp("Fire2"))
         }
         isAttack = false;
+        currentStamina += Mathf.Clamp(currentStamina + staminaRecoveryRate * Time.deltaTime, 0, maxStamina);
+
     }
 
-    // 회복 아이템 사용 (K 키 누르면 작동)
+    // 회복 아이템 사용 (R 키 누르면 작동)
     void potion()
     {
-        if (Input.GetKeyDown(KeyCode.K))
+        if (Input.GetKeyDown(KeyCode.R))
         {
             // 체력 회복
             currentHP += healAmount;
@@ -339,18 +431,18 @@ public class PlayerContorler : MonoBehaviour
     }
     void Shield()
     {
-       // ShieldCollider = ShieldPrefab.GetComponent<BoxCollider>();
-        if(Input.GetMouseButton(1))
+        // ShieldCollider = ShieldPrefab.GetComponent<BoxCollider>();
+        if (Input.GetMouseButton(1))
         {
-           // if (isShieldActive) return; // 쉴드가 이미 활성화 되어있다면 반환
-            
+            // if (isShieldActive) return; // 쉴드가 이미 활성화 되어있다면 반환
+            Run = false; // 달리기 불가 
             isShieldActive = true; // 쉴드상태 트루 변경
             animator.SetTrigger("isShield"); // 애니메이션 재생
-            
+
             //isShieldActive가 true일떄 스콜피온이 공격을 안하는걸로 되어있는데 ... 내 생각엔 상대가 공격하는데 그 데미지를 무시하고 한번 무시하면 isShieldActive 가 false 되는건데 어... 쉽지않음 보류
 
             print("쉴드중");
-            if(isShieldActive && Scorpion.isAttackTrue ) // 쉴드상태일때 맞으면 Shield hit 애니메이션 재생 
+            if (isShieldActive && Scorpion.isAttackTrue) // 쉴드상태일때 적한테 맞으면 Shield hit 애니메이션 재생 
             {
                 isShieldHit = true;
                 animator.SetBool("isShieldHit", true);
@@ -358,14 +450,18 @@ public class PlayerContorler : MonoBehaviour
                 isShieldActive = false;
             }
         }
-        else 
+        else
         {
             //쉴드상태 false 변경 
             //쉴드 박스콜라이더 비활성화 
             isShieldActive = false;
             animator.SetBool("isShieldHit", false);
         }
-        
+        if (Input.GetKeyDown(KeyCode.F)) // 쉴드어택 방패로 때림 F
+        {
+
+        }
+        Run = true;
     }
 
     // 데미지 처리 (몬스터의 데미지 입력 처리 미구현)
@@ -381,7 +477,7 @@ public class PlayerContorler : MonoBehaviour
             }
 
         }
-        
+
     }
 
     // 애니메이션 이벤트가 호출할 메서드
