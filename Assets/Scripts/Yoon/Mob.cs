@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.UI;
@@ -10,14 +12,21 @@ namespace yoon
 {
     public class Mob : Monster
     {
-        public enum MoveType
+        public enum MobType
         {
             Way_Point,
-            FollowPlayer
+            FollowPlayer,
+            TaleAttack,
+            LongAttack,
+            JumpAttack,
+            Death,
+            ReturnHome,
+            AttackDelay
         }
 
-        public MoveType moveType = MoveType.Way_Point;
+        public MobType mobType = MobType.Way_Point;
         public float moveSpeed = 1f;
+        float currentSpeed;
 
         public TMP_Text hpText;
 
@@ -25,11 +34,12 @@ namespace yoon
 
         public bool isDead;
         public bool isAttackTrue;
-
+        private bool jumpAttackPerformed = false;
 
         public bool drawGizmos = true;
         public float sightRange;
         public float sightDistance;
+        public float attackRange;
 
         public Animator anim;
 
@@ -131,64 +141,6 @@ namespace yoon
         }
 
 
-        #region 이동 함수
-        IEnumerator MoveStop()
-        {
-            float originalSpeed = moveSpeed;
-            moveSpeed = 0;
-            anim.SetFloat("MoveSpeed", moveSpeed);
-            yield return new WaitForSeconds(3.0f);
-            moveSpeed = originalSpeed;
-        }
-
-        public override void Move()
-        {
-            if (moveSpeed > 0)
-            {
-                anim.SetFloat("MoveSpeed", moveSpeed);
-            }
-
-            switch (moveType)
-            {
-                case MoveType.Way_Point:
-                    navMeshAgent.enabled = false; // NavMeshAgent 비활성화
-                    if (points.Length == 0) return;
-
-                    CheckSight(sightRange, sightDistance);
-
-                    Vector3 direction = points[nextIndex].position - thisTransform.position;
-                    Quaternion rot = Quaternion.LookRotation(direction);
-                    float adjustedDamping = damping * (moveSpeed * rotationSpeedMultiplier); // 이동 속도에 따른 회전 속도 조정
-                    thisTransform.rotation = Quaternion.Slerp(thisTransform.rotation, rot, Time.deltaTime * adjustedDamping);
-
-                    thisTransform.position += thisTransform.forward * moveSpeed * Time.deltaTime;
-
-                    // 다음 웨이포인트로 이동할 조건 확인
-                    if (Vector3.Distance(thisTransform.position, points[nextIndex].position) < 0.1f)
-                    {
-                        nextIndex = (++nextIndex >= points.Length) ? 0 : nextIndex;
-                        wayPointNum++;
-                        if (wayPointNum % 3 == 0)
-                        {
-                            wayPointNum = 0;
-                            StartCoroutine(MoveStop());
-                        }
-                    }
-                    break;
-
-                case MoveType.FollowPlayer:
-                    navMeshAgent.enabled = true; // NavMeshAgent 활성화
-                    if (player != null)
-                    {
-                        navMeshAgent.SetDestination(player.position);
-
-                        TaleAttack();
-                    }
-                    break;
-            }
-
-            anim.SetBool("Move", moveSpeed != 0);
-        }
         #endregion
 
 
@@ -252,24 +204,17 @@ namespace yoon
                 return; // Die() 이후에는 다른 작업을 하지 않도록 리턴
             }
 
-            if (playerHideTrue)
+            if (navMeshAgent.enabled)
             {
-                if (moveType == MoveType.FollowPlayer)
-                {
-                    // moveType이 FollowPlayer에서 Way_Point로 변경될 때
-                    nextIndex = GetClosestWayPointIndex();
-                }
-                moveType = MoveType.Way_Point;
-            }
-            else
-            {
-                moveType = MoveType.FollowPlayer;
+                moveSpeed = currentSpeed;
             }
 
             if (!isDead)
             {
                 Move();
             }
+
+            CurrentState();
 
             if (_nextHpBar.value != nextHP)
             {
@@ -301,51 +246,207 @@ namespace yoon
         // 플레이어와 충돌 시 공격
         private void OnCollisionStay(Collision collision)
         {
-            if (isAttackTrue == false && !playerScript.isShieldActive)
+            if (collision.gameObject.CompareTag("Player"))
             {
-                //StartCoroutine(AttackDamage(collision));
+                StartCoroutine(HandlePostAttack(MobType.AttackDelay)); // 공격 후 딜레이 상태로 전환
+                anim.SetTrigger("TaleAttack");
             }
         }
 
 
-        bool attackTrue = false;
 
         void TaleAttack()
         {
-            Ray ray = new Ray(transform.position, transform.forward);
-            RaycastHit hitInfo;
 
-            if (Physics.Raycast(ray, out hitInfo, 20, (1 << 11)) && !attackTrue)
-            {
-                attackTrue = true;
-
-                if (playerScript != null)
-                {
-                    PlayerContorler player = hitInfo.transform.GetComponent<PlayerContorler>();
-                    player.GetDamage(scorpionDamage);
-                }
-                else if (playerTestScript != null)
-                {
-                    TestScripts player = hitInfo.transform.GetComponent<TestScripts>();
-                    print(player.name);
-                }
-
-
-                anim.SetTrigger("TaleAttack");
-                StartCoroutine(MoveStop());
-            }
+            StartCoroutine(HandlePostAttack(MobType.AttackDelay)); // 공격 후 딜레이 상태로 전환
+            anim.SetTrigger("TaleAttack");
         }
 
-
-
-        private void OnCollisionExit(Collision collision)
+        IEnumerator HandlePostAttack(MobType nextState)
         {
-            if (collision.gameObject.CompareTag("Player"))
+            isAttackTrue = true; // 공격 중 상태로 설정
+            currentSpeed = moveSpeed;
+            moveSpeed = 0;
+            anim.SetFloat("MoveSpeed", moveSpeed);
+            anim.SetBool("Move", false);
+            yield return new WaitForSeconds(0.01f);
+            float animTime = anim.GetCurrentAnimatorStateInfo(0).length * 3;
+            yield return new WaitForSeconds(animTime); // 애니메이션 길이만큼 대기
+            isAttackTrue = false; // 공격 완료 상태로 설정
+            mobType = nextState; // 다음 상태로 전환
+        }
+
+        void LongAttack()
+        {
+            StartCoroutine(HandlePostAttack(MobType.AttackDelay)); // 공격 후 딜레이 상태로 전환
+            anim.SetTrigger("LongAttack");
+            anim.SetBool("Move", false);
+        }
+
+        void JumpAttack()
+        {
+            StartCoroutine(HandlePostAttack(MobType.AttackDelay)); // 공격 후 딜레이 상태로 전환
+            anim.SetTrigger("JumpAttack");
+        }
+
+        void AttackDelay()
+        {
+            navMeshAgent.enabled = false;
+
+            
+
+            // 만일, 타겟과 거리가 공격 가능한 범위를 벗어났다면...
+            float dist = Vector3.Distance(transform.position, target.position);
+
+            if (dist > 7)
             {
-                isAttackTrue = false;
-                StopAllCoroutines();
+                // 다시 추격 상태로 전환한다.
+                mobType = MobType.FollowPlayer;
+                print("My State: AttackDelay -> FollowPlayer");
+                currentTime = 0;
+                moveSpeed = currentSpeed;
+                anim.SetFloat("MoveSpeed", moveSpeed);
+                anim.SetBool("Move", true);
+                jumpAttackPerformed = false; // 추격 상태로 돌아갈 때 초기화
+                return;
+            }
+            else if (dist > 4)
+            {
+                // 일정시간 대기한다.
+                currentTime += Time.deltaTime;
+                // 일정 시간이 지났다면 상태를 원거리 공격 상태로 전환한다.
+                if (currentTime > 1.5f)
+                {
+                    currentTime = 0;
+                    mobType = MobType.LongAttack;
+                    print("My State: AttackDelay -> LongAttack");
+                    anim.SetTrigger("LongAttack");
+                }
+            }
+            else if (dist <= 4 && !jumpAttackPerformed)
+            {
+                // 일정시간 대기한다.
+                currentTime += Time.deltaTime;
+                // 일정 시간이 지났다면 상태를 근거리 공격 상태로 전환한다.
+                if (currentTime > 1.5f)
+                {
+                    currentTime = 0;
+                    mobType = MobType.JumpAttack;
+                    print("My State: AttackDelay -> JumpAttack");
+                    anim.SetTrigger("JumpAttack");
+                    jumpAttackPerformed = true; // 점프 공격 수행 후 true로 설정
+                }
+            }
+            else if (dist <= 4 && jumpAttackPerformed)
+            {
+                // 점프 공격 후 TailAttack으로 전환
+                currentTime += Time.deltaTime;
+                if (currentTime > 1.5f)
+                {
+                    currentTime = 0;
+                    mobType = MobType.TaleAttack;
+                    print("My State: AttackDelay -> TaleAttack");
+                    anim.SetTrigger("TaleAttack");
+                    anim.SetBool("Move", true);
+                }
             }
         }
+
+
+        void CurrentState()
+        {
+            switch (mobType)
+            {
+                case MobType.Way_Point:
+                    WayPointMove();
+                    break;
+
+                case MobType.FollowPlayer:
+                    FollowPlayer();
+                    break;
+
+                case MobType.AttackDelay:
+                    AttackDelay();
+                    break;
+
+                case MobType.TaleAttack:
+                    TaleAttack();
+                    break;
+
+                case MobType.LongAttack:
+                    LongAttack();
+                    break;
+
+                case MobType.JumpAttack:
+                    JumpAttack();
+                    break;
+            }
+        }
+
+
+        #region 웨이포인트 이동 함수
+        void WayPointMove()
+        {
+            CheckSight(sightRange, sightDistance);
+            anim.SetFloat("MoveSpeed", moveSpeed);
+            navMeshAgent.enabled = false; // NavMeshAgent 비활성화
+            if (points.Length == 0) return;
+
+            Vector3 direction = points[nextIndex].position - thisTransform.position;
+            Quaternion rot = Quaternion.LookRotation(direction);
+            float adjustedDamping = damping * (moveSpeed * rotationSpeedMultiplier); // 이동 속도에 따른 회전 속도 조정
+            thisTransform.rotation = Quaternion.Slerp(thisTransform.rotation, rot, Time.deltaTime * adjustedDamping);
+
+            thisTransform.position += thisTransform.forward * moveSpeed * Time.deltaTime;
+
+            // 다음 웨이포인트로 이동할 조건 확인
+            if (Vector3.Distance(thisTransform.position, points[nextIndex].position) < 0.1f)
+            {
+                nextIndex = (++nextIndex >= points.Length) ? 0 : nextIndex;
+                wayPointNum++;
+                if (wayPointNum % 3 == 0)
+                {
+                    wayPointNum = 0;
+                    StartCoroutine(MoveStop());
+                }
+            }
+            if(!playerHideTrue)
+            {
+                mobType = MobType.FollowPlayer;
+            }
+        }
+        #endregion
+
+        #region 플레이어 접근 함수
+        void FollowPlayer()
+        {
+            navMeshAgent.enabled = true;
+            moveSpeed = currentSpeed;
+            anim.SetFloat("MoveSpeed", moveSpeed);
+            if (player != null)
+            {
+                navMeshAgent.SetDestination(player.position);
+                float distanceToPlayer = Vector3.Distance(player.position, thisTransform.position);
+                if (distanceToPlayer <= attackRange) // Define attackRange
+                {
+                    mobType = MobType.AttackDelay; // 전투 상태로 전환
+                }
+            }
+            if (playerHideTrue)
+            {
+                nextIndex = GetClosestWayPointIndex();
+                mobType = MobType.Way_Point;
+            }
+        }
+        #endregion
+
+        void OnAttackComplete()
+        {
+            isAttackTrue = false; // 공격 완료 상태로 설정
+            mobType = MobType.AttackDelay; // 다음 상태로 전환
+        }
+
+
 
         // 가장 가까운 웨이포인트를 다음 웨이포인트로 설정
         private int GetClosestWayPointIndex()
@@ -365,6 +466,8 @@ namespace yoon
 
             return closestIndex;
         }
+
+
 
         private void LateUpdate()
         {
@@ -387,6 +490,8 @@ namespace yoon
             }
         }
 
+
+        #region 몬스터 시야각 함수
         void CheckSight(float degree, float maxDistance)
         {
             // 시야 범위 안에 들어온 대상이 있다면 그 대상을 타겟으로 설정하고 싶다.
@@ -417,12 +522,18 @@ namespace yoon
                     {
                         target = players[i].transform;
                         playerHideTrue = false;
+                        if (distance > 6)
+                        {
+                            mobType = MobType.AttackDelay;
+                        }
                     }
                 }
             }
         }
+        #endregion
 
 
+        #region  시야각 그리기 함수
         // 원 그리기
         private void OnDrawGizmos()
         {
@@ -463,7 +574,7 @@ namespace yoon
             Gizmos.DrawLine(transform.position, leftPos);
 
         }
-
+        #endregion
     }
 }
 

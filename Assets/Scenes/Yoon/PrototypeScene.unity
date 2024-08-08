@@ -925,7 +925,7 @@ PrefabInstance:
     - target: {fileID: 5292949067180756424, guid: 15340c37985fc3d49ac94b7088d8627b,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: 25.52
+      value: 10.498995
       objectReference: {fileID: 0}
     - target: {fileID: 5292949067180756424, guid: 15340c37985fc3d49ac94b7088d8627b,
         type: 3}
@@ -2873,7 +2873,7 @@ PrefabInstance:
     - target: {fileID: 3622031864850595998, guid: 4f010363a09e6e94381afe091c669765,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: 7.371005
+      value: -7.65
       objectReference: {fileID: 0}
     - target: {fileID: 3622031864850595998, guid: 4f010363a09e6e94381afe091c669765,
         type: 3}
@@ -4053,7 +4053,7 @@ PrefabInstance:
     - target: {fileID: 3622031864850595998, guid: 4f010363a09e6e94381afe091c669765,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: 26.041004
+      value: 11.019999
       objectReference: {fileID: 0}
     - target: {fileID: 3622031864850595998, guid: 4f010363a09e6e94381afe091c669765,
         type: 3}
@@ -4218,6 +4218,8 @@ MonoBehaviour:
   maxHP: 100
   currentHP: 10
   ShieldPrefab: {fileID: 413898961}
+  isShieldActive: 0
+  isShieldHit: 0
   ArrowPos: {fileID: 139662821}
   Arrow2: {fileID: 6713457222960003005, guid: d73af269e6de2fd46b60be9de2654805, type: 3}
   maxStamina: 100
@@ -5633,7 +5635,7 @@ PrefabInstance:
     - target: {fileID: 5292949067180756424, guid: 15340c37985fc3d49ac94b7088d8627b,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: 6.85
+      value: -8.171005
       objectReference: {fileID: 0}
     - target: {fileID: 5292949067180756424, guid: 15340c37985fc3d49ac94b7088d8627b,
         type: 3}

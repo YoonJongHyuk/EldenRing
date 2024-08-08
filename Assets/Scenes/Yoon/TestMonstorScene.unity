@@ -293,10 +293,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BindingMode: 5
-  m_FollowOffset: {x: 0, y: 2.5, z: -3}
+  m_FollowOffset: {x: 0, y: 0.4, z: -1.3}
   m_XDamping: 1
-  m_YDamping: 1
-  m_ZDamping: 1
+  m_YDamping: 0
+  m_ZDamping: 0
   m_AngularDampingMode: 0
   m_PitchDamping: 0
   m_YawDamping: 0
@@ -358,7 +358,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 87ef8c1d3bfd4a8439a3c877c753f7d7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveType: 0
+  mobType: 0
   moveSpeed: 2
   hpText: {fileID: 9118806145766865861}
   thisHP: 175
@@ -367,6 +367,7 @@ MonoBehaviour:
   drawGizmos: 1
   sightRange: 50
   sightDistance: 10
+  attackRange: 4
   anim: {fileID: 578795905449794565}
   wayPointGroup: {fileID: 102202849}
   scorpionDamage: 5
@@ -446,8 +447,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 440977022}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.124591835, y: 0.5858423, z: -0.09175313, w: 0.79551685}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: -0.26586694, y: 0.5597278, z: 0.19579232, w: 0.76005596}
+  m_LocalPosition: {x: 0, y: 0.00000011920929, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -528,10 +529,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BindingMode: 5
-  m_FollowOffset: {x: 0, y: 2.5, z: -3}
+  m_FollowOffset: {x: 0, y: 0.4, z: -1.3}
   m_XDamping: 1
-  m_YDamping: 1
-  m_ZDamping: 1
+  m_YDamping: 0
+  m_ZDamping: 0
   m_AngularDampingMode: 0
   m_PitchDamping: 0
   m_YawDamping: 0
@@ -1043,7 +1044,7 @@ MonoBehaviour:
         m_Calls: []
   m_LegacyBlendHint: 0
   m_YAxis:
-    Value: 0.5
+    Value: 0
     m_SpeedMode: 0
     m_MaxSpeed: 4
     m_AccelTime: 0.2
@@ -1117,7 +1118,7 @@ Transform:
   m_GameObject: {fileID: 899873712}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 9.7351265, y: 3.5, z: -0.8902214}
+  m_LocalPosition: {x: 11.358555, y: 1.4, z: -0.3857626}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1272,8 +1273,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1129386462}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.15340671, y: 0.58212274, z: -0.112973265, w: 0.79046607}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: -0.2380825, y: 0.5664705, z: 0.17533103, w: 0.7692119}
+  m_LocalPosition: {x: 0, y: 0.00000011920929, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1367,8 +1368,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1218592476}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.13900316, y: 0.58408123, z: -0.10236603, w: 0.7931258}
-  m_LocalPosition: {x: 9.7351265, y: 3.5, z: -0.8902214}
+  m_LocalRotation: {x: -0.26586708, y: 0.55972767, z: 0.19579239, w: 0.7600559}
+  m_LocalPosition: {x: 11.358555, y: 1.4, z: -0.3857626}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1523,8 +1524,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1277625318}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.13900316, y: 0.58408135, z: -0.10236607, w: 0.7931257}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: -0.25203463, y: 0.56318766, z: 0.18560581, w: 0.76475406}
+  m_LocalPosition: {x: 0, y: 0.00000011920929, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1995,10 +1996,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BindingMode: 5
-  m_FollowOffset: {x: 0, y: 2.5, z: -3}
+  m_FollowOffset: {x: 0, y: 0.4, z: -1.3}
   m_XDamping: 1
-  m_YDamping: 1
-  m_ZDamping: 1
+  m_YDamping: 0
+  m_ZDamping: 0
   m_AngularDampingMode: 0
   m_PitchDamping: 0
   m_YawDamping: 0
@@ -5064,6 +5065,7 @@ GameObject:
   - component: {fileID: 2806464823715881579}
   - component: {fileID: 1681642324027242263}
   - component: {fileID: 331225129}
+  - component: {fileID: 7705570347623666987}
   m_Layer: 0
   m_Name: Mob
   m_TagString: Untagged
@@ -5071,6 +5073,18 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!114 &7705570347623666987
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7705570347623666986}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe6a36bdfcd6747459125e12a18184d0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &7719068266765230964
 GameObject:
   m_ObjectHideFlags: 0
