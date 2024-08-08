@@ -141,8 +141,6 @@ namespace yoon
         }
 
 
-        #endregion
-
 
         #region Start¿ë ÇÔ¼ö
         public override void EnterState()
@@ -407,7 +405,7 @@ namespace yoon
                 if (wayPointNum % 3 == 0)
                 {
                     wayPointNum = 0;
-                    StartCoroutine(MoveStop());
+                    //StartCoroutine(MoveStop());
                 }
             }
             if(!playerHideTrue)
