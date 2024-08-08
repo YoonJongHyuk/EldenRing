@@ -4,6 +4,7 @@ using UnityEngine;
 using yoon;
 using UnityEngine.UI;
 using UnityEditor.Experimental.GraphView;
+using Cinemachine;
 
 public class PlayerContorler : MonoBehaviour
 {
@@ -60,11 +61,6 @@ public class PlayerContorler : MonoBehaviour
     public bool isShieldActive = false; //방패 상태
     public bool isShieldHit = false; // 맞는 방패상태
 
-    //shift 묶기 
-    //public float speedThreshold = 0.1f; //움직임을 판단할 속도 임계값
-    //public float shiftHoldTime = 1.0f; // shift를 누르고 있어야 하는 시간
-    //float shiftPressTime;
-
     // 화살 관련 변수들
     public Transform ArrowPos; // 화살 위치
     public GameObject Arrow2; // 화살 오브젝트
@@ -86,6 +82,12 @@ public class PlayerContorler : MonoBehaviour
     [SerializeField]
     private Slider _nextHpBar; // nextHP 용 슬라이더 추가
 
+    // 시네머신 카메라 
+    public CinemachineVirtualCamera Vcamera;
+    public Transform L_target;
+    public bool targetLocked = false;
+        
+
     Scorpion Scorpion;
 
     // Start는 첫 프레임 업데이트 전에 호출됩니다.
@@ -100,6 +102,8 @@ public class PlayerContorler : MonoBehaviour
 
     void Start()
     {
+        //시네머신카메라
+        Vcamera = FindObjectOfType<CinemachineVirtualCamera>();
         // currentHP = maxHP; // 회복을 보이기 위해 초기화 생략
         currentStamina = maxStamina; // 현재 스태미나를 최대값으로 설정
         equipWeapon = Weapon[0].GetComponent<Sward>();
@@ -130,6 +134,31 @@ public class PlayerContorler : MonoBehaviour
         BackStep(); // 빽스탭
         Dodge(); // 구르기
         Stamina(); // 스테미나 처리 
+        Camera();
+    }
+
+    void Camera()
+    {
+        if (Vcamera != null)
+        {
+            L_target = Vcamera.LookAt;
+        }
+        if(Input.GetKey(KeyCode.Q))
+        {
+            Transform newTarget = GameObject.FindGameObjectWithTag("Monster")?.transform;
+            if (newTarget != null)
+            {
+                Vcamera.LookAt = newTarget;
+                targetLocked = true;
+            }
+            else
+            {
+                targetLocked = false;
+            }
+        }
+
+
+
     }
 
     void HPBar()
@@ -292,60 +321,7 @@ public class PlayerContorler : MonoBehaviour
         }
     }
 
-    //void Shift()
-    //{
-    //    bool isMoving = rb.velocity.magnitude > speedThreshold;
-    //    bool isShiftPressed = Input.GetButton("shift");
-    //    if(isShiftPressed)
-    //    {
-    //        if (!isMoving) // 움직이지 않을떄 빽스탭
-    //        {
-    //            Backstep = true;
-    //            Vector3 backVec = -transform.forward * 3.0f;
-
-    //            transform.Translate(backVec, Space.World);
-    //            animator.SetBool("Backstep", true);
-    //            currentStamina = currentStamina - staminaDrainRateDodge;
-    //            print(currentStamina);
-    //        }
-    //        else // 움직이고 있을 때 
-    //        {
-    //            dodgeVec = transform.forward * 3.0f;// 구르기 벡터 설정
-    //            transform.Translate(dodgeVec, Space.World);
-    //            // rb.AddForce(Vector3.up * 5, ForceMode.Impulse); // 위로 힘을 가해 구르기
-    //            animator.SetBool("isDodge", true); // 구르기 애니메이션 설정
-    //            isDodge = true; // 구르기 상태 설정
-    //            Invoke("DodgeOut", 0.5f); // 0.5초 후 구르기 해제
-    //            currentStamina = currentStamina - staminaDrainRateDodge; // 스태미나 소모
-
-    //            if (Time.time - shiftPressTime >= shiftHoldTime) //shift키를 계속 누르고 있는지 확인 
-    //            {
-
-    //                Run = true;
-    //                transform.position += moveVec * MoveSpeed * 2.0f * Time.deltaTime; // 달리기 속도로 이동
-    //                animator.SetBool("isRun", true); // 달리기 애니메이션 설정
-    //                currentStamina -= Mathf.Clamp(currentStamina + staminaRecoveryRate * Time.deltaTime, 0, maxStamina);
-    //            }
-
-    //        }
-    //    }
-    //    else
-    //    {
-    //        Run = false;
-    //        transform.position += moveVec * MoveSpeed * Time.deltaTime; // 걷기 속도로 이동
-    //        animator.SetBool("isRun", false); // 달리기 애니메이션 해제
-
-    //        isDodge = false; // 구르기 상태 해제
-    //        animator.SetBool("isDodge", false);
-    //        CancelInvoke();
-
-    //        animator.SetBool("Backstep", false);
-    //        Backstep = false;
-    //        currentStamina += Mathf.Clamp(currentStamina + staminaRecoveryRate * Time.deltaTime, 0, maxStamina);
-
-    //        shiftPressTime = Time.time; // shift 키를 누르고 있지 않으면 타이머 리셋
-    //    }
-    //}
+    
 
     public void GetDamage(int damage)
     {
