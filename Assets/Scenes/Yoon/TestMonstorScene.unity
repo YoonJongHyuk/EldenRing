@@ -368,6 +368,11 @@ MonoBehaviour:
   sightRange: 50
   sightDistance: 10
   attackRange: 4
+  curveTime: 5
+  interval: 0.1
+  jumpPower: 7
+  mass: 5
+  isJumpTrue: 0
   anim: {fileID: 578795905449794565}
   wayPointGroup: {fileID: 102202849}
   scorpionDamage: 5
@@ -1633,7 +1638,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 3, y: 1, z: 3}
+  m_LocalScale: {x: 20, y: 1, z: 20}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 808339395}
@@ -5061,10 +5066,10 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4650610517275397973}
+  - component: {fileID: 331225129}
   - component: {fileID: 578795905449794565}
   - component: {fileID: 2806464823715881579}
   - component: {fileID: 1681642324027242263}
-  - component: {fileID: 331225129}
   - component: {fileID: 7705570347623666987}
   m_Layer: 0
   m_Name: Mob
