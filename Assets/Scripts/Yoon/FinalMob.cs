@@ -127,6 +127,7 @@ public class FinalMob : MonoBehaviour
         {
             anim.SetBool("Move", false);
         }
+        UpdateHPBarVisibility();
     }
 
     void DelayTime()
@@ -342,7 +343,7 @@ public class FinalMob : MonoBehaviour
 
     private void UpdateHPBarVisibility()
     {
-        if (Vector3.Distance(player.position, transform.position) > hideDistance)
+        if (Vector3.Distance(target.position, transform.position) > hideDistance)
         {
             _hpBar.gameObject.SetActive(false);
         }
