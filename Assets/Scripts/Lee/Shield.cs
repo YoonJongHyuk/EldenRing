@@ -4,23 +4,22 @@ using UnityEngine;
 
 public class Shield : MonoBehaviour
 {
-    //public GameObject Player;
+//    public int attackPower = 10; // 공격력
+//    public int attackRange = 3; // 공격 범위
+//    public float rate; // 공격 속도
 
-    //private void OnCollisionEnter(Collision collision)
-    //{
-    //    if(collision.gameObject.CompareTag("Enemy"))
-    //    {
-    //        Enemy enemy = collision.gameObject.GetComponent<Enemy>();
-
-    //        // if(공격을 받으면 )
-    //        {
-    //            float enemyAttackPower = enemy.GetAttackPower();
-    //            float damage = enemyAttackPower / 2;
+//    private void OnCollisionEnter(Collision collision)
+//    {
+//        if(collision.gameObject.CompareTag("Enemy"))
+//        {
+            
+//             if(Input.GetMouseButton(1))
+//            {
                 
-    //            Player.current HP -= damage;
+                
+                
+//            }
+//        }
 
-    //        }
-    //    }
-
-    //}
+//    }
 }
