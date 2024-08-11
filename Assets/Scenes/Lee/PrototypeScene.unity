@@ -4889,16 +4889,19 @@ MonoBehaviour:
   isShieldHit: 0
   ArrowPos: {fileID: 139662821}
   Arrow2: {fileID: 6713457222960003005, guid: d73af269e6de2fd46b60be9de2654805, type: 3}
-  maxStamina: 100
-  currentStamina: 100
-  staminaRecoveryRate: 5
-  staminaDrainRateAttack: 20
-  staminaDrainRateDodge: 30
+  maxStamina: 0
+  currentStamina: 0
+  staminaRecoveryRate: 0.1
+  staminaDrainRateAttack: 0.2
+  staminaDrainRateDodge: 0.3
   _hpBar: {fileID: 648427097}
   _nextHpBar: {fileID: 708060421}
   Vcamera: {fileID: 0}
-  L_target: {fileID: 0}
+  L_target: {fileID: 237376470}
   targetLocked: 0
+  isDead: 0
+  respawnPosition: {x: 0, y: 0, z: 0}
+  canSetRespawn: 0
 --- !u!136 &1343566332
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -5175,7 +5178,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1395596342}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bc491beedd1622a42a8592faabbd581e, type: 3}
   m_Name: 
@@ -5528,10 +5531,9 @@ GameObject:
   - component: {fileID: 1568374783}
   - component: {fileID: 1568374782}
   - component: {fileID: 1568374781}
-  - component: {fileID: 1568374784}
   m_Layer: 0
   m_Name: Cube
-  m_TagString: Untagged
+  m_TagString: Respawn
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -5622,18 +5624,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1568374779}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!114 &1568374784
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1568374779}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e7f9bfc5e81a19a4bb624754b86cf53f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &1605189756
 GameObject:
   m_ObjectHideFlags: 0

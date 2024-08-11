@@ -187,9 +187,23 @@ public class FinalMob : MonoBehaviour
         }
     }
 
+    public void GetDamage(int damage)
+    {
+        if (scorpionHP > 0)
+        {
+            scorpionHP -= damage;
+            _hpBar.value = scorpionHP;
+            nextHP = scorpionHP;
+            currentTime = 0.0f; // 새 데미지를 받을 때마다 currentTime을 초기화
+            totalDamageTaken += damage; // 누적 데미지 업데이트
+            UpdateDamageText(); // 데미지 텍스트 업데이트
+        }
+    }
+    private void UpdateDamageText()
+    {
+        hpText.text = totalDamageTaken.ToString();
+    }
 
-    
-    
 
     void NavMeshPlayer()
     {
