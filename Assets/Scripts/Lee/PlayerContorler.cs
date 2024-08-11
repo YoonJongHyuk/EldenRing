@@ -5,6 +5,7 @@ using yoon;
 using UnityEngine.UI;
 using UnityEditor.Experimental.GraphView;
 using Cinemachine;
+using UnityEngine.SceneManagement;
 
 public class PlayerContorler : MonoBehaviour
 {
@@ -83,10 +84,17 @@ public class PlayerContorler : MonoBehaviour
     private Slider _nextHpBar; // nextHP 용 슬라이더 추가
 
     // 시네머신 카메라 
-    public CinemachineVirtualCamera Vcamera;
+    public CinemachineFreeLook Vcamera;
     public Transform L_target;
     public bool targetLocked = false;
-        
+    
+
+    //사망 (리스폰)
+    bool isDead = false;
+    Transform Respawn;
+    private Vector3 respawnPosition;
+    private bool canSetRespawn = false; // 리스폰 포인트 설정 가능 여부
+
 
     Scorpion Scorpion;
 
@@ -103,7 +111,7 @@ public class PlayerContorler : MonoBehaviour
     void Start()
     {
         //시네머신카메라
-        Vcamera = FindObjectOfType<CinemachineVirtualCamera>();
+        Vcamera = FindObjectOfType<CinemachineFreeLook>();
         // currentHP = maxHP; // 회복을 보이기 위해 초기화 생략
         currentStamina = maxStamina; // 현재 스태미나를 최대값으로 설정
         equipWeapon = Weapon[0].GetComponent<Sward>();
@@ -123,42 +131,69 @@ public class PlayerContorler : MonoBehaviour
         Move(); // 이동 처리
         Rotate(); // 회전 처리
         Jump(); // 점프 처리
-        //Interation(); // 상호작용 처리
         Attack(); // 공격 처리
-        Swap(); // 무기 교체 처리
-        Swapout(); // 무기 교체 해제 처리
         potion(); // 포션 사용 처리
         HPBar(); // 체력바
         Shield(); // 쉴드
-                  // Shift(); // shift키 모음
         BackStep(); // 빽스탭
         Dodge(); // 구르기
         Stamina(); // 스테미나 처리 
-        Camera();
-    }
+        Cam(); // Lookon
+        CheckRespawn(); // 리스폰 체크 및 리스폰
+        SetRespawnPosition(); //리스폰 프리팹 상호작용
+ }
 
-    void Camera()
+    void Cam()
     {
         if (Vcamera != null)
         {
-            L_target = Vcamera.LookAt;
-        }
-        if(Input.GetKey(KeyCode.Q))
-        {
-            Transform newTarget = GameObject.FindGameObjectWithTag("Monster")?.transform;
-            if (newTarget != null)
+            // 메인 카메라를 가져옵니다.
+            Camera camera = Camera.main;
+
+            if (camera == null)
             {
-                Vcamera.LookAt = newTarget;
-                targetLocked = true;
+                Debug.LogWarning("메인 카메라를 찾을 수 없습니다.");
+                return;
             }
-            else
+
+            // 플레이어의 월드 좌표를 뷰포트 좌표로 변환합니다.
+            Vector3 viewportPosition = camera.WorldToViewportPoint(transform.position);
+
+            // 플레이어가 뷰포트 내에 있는지 확인합니다.
+            bool isInViewport = viewportPosition.x >= 0 && viewportPosition.x <= 1 && viewportPosition.y >= 0 && viewportPosition.y <= 1;
+
+            // Q 키를 눌러서 카메라의 타겟을 토글합니다.
+            if (Input.GetKeyDown(KeyCode.Q))
             {
-                targetLocked = false;
+                if (targetLocked)
+                {
+                    // 타겟 잠금 해제
+                    Vcamera.LookAt = null;
+                    targetLocked = false;
+                }
+                else
+                {
+                    // 타겟 잠금 설정
+                    Transform newTarget = GameObject.FindGameObjectWithTag("Monster")?.transform;
+                    if (newTarget != null)
+                    {
+                        Vcamera.LookAt = newTarget;
+                        targetLocked = true;
+                    }
+                    else
+                    {
+                        targetLocked = false;
+                    }
+                }
+            }
+
+            // 플레이어가 카메라 뷰포트 내에 있으면 카메라가 플레이어를 바라보게 함
+            if (targetLocked && !isInViewport)
+            {
+                // 플레이어가 카메라 뷰포트 밖에 있을 때 카메라가 플레이어를 바라보도록 조정
+                Vcamera.LookAt = transform;
             }
         }
-
-
-
     }
 
     void HPBar()
@@ -185,17 +220,12 @@ public class PlayerContorler : MonoBehaviour
 
     void Stamina()
     {
-        //     // 스태미나 관련 변수들
-        //public float maxStamina = 10.0f; // 최대 스태미나
-        //public float currentStamina = 10.0f; // 현재 스태미나
-        //public float staminaRecoveryRate = 4.0f; // 스태미나 회복 속도
-        //public float staminaDrainRateAttack = 2.0f; // 공격 시 스태미나 소모량
-        //public float staminaDrainRateDodge = 3.0f; // 구르기 시 스태미나 소모량
-
         // 스태미나 회복 처리
-        currentStamina += Mathf.Clamp(currentStamina + staminaRecoveryRate * Time.deltaTime, 0, maxStamina);
+        currentStamina += staminaRecoveryRate * Time.deltaTime;
+        currentStamina = Mathf.Clamp(currentStamina + staminaRecoveryRate * Time.deltaTime, 0, maxStamina);
         if (currentStamina >= maxStamina)
         {
+            
             currentStamina = maxStamina;
         }
 
@@ -250,7 +280,13 @@ public class PlayerContorler : MonoBehaviour
     // 회전 처리 (아직 마우스 입력 미구현)
     void Rotate()
     {
-        transform.LookAt(transform.position + moveVec); // 이동 방향으로 회전
+        if (moveVec != Vector3.zero)
+        {
+            Quaternion targetRotation = Quaternion.LookRotation(moveVec);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 10f);
+            transform.LookAt(transform.position + moveVec); // 이동 방향으로 회전
+
+        }
     }
 
     // 점프 처리 (애니메이션 exit 문제)
@@ -269,7 +305,7 @@ public class PlayerContorler : MonoBehaviour
     void BackStep()
     {
 
-        if (Input.GetKeyDown(KeyCode.N) && BackVec.magnitude == 0)
+        if (Input.GetKeyDown(KeyCode.F) && BackVec.magnitude == 0)
         {
             Backstep = true;
             Vector3 backVec = -transform.forward * 3.0f;
@@ -277,7 +313,7 @@ public class PlayerContorler : MonoBehaviour
             transform.Translate(backVec, Space.World);
             animator.SetBool("Backstep", true);
             currentStamina = currentStamina - staminaDrainRateDodge;
-            
+
         }
         else
         {
@@ -297,10 +333,9 @@ public class PlayerContorler : MonoBehaviour
         }
     }
 
-    //구르기 모션중 0.33초간 무적
     void Dodge()
     {
-        if (Input.GetKeyDown(KeyCode.M))// && isMove && !isJump)
+        if (Input.GetKeyDown(KeyCode.F))// && isMove && !isJump)
         {
             dodgeVec = transform.forward * 3.0f;// 구르기 벡터 설정
             transform.Translate(dodgeVec, Space.World);
@@ -309,7 +344,7 @@ public class PlayerContorler : MonoBehaviour
             isDodge = true; // 구르기 상태 설정
             Invoke("DodgeOut", 0.5f); // 0.5초 후 구르기 해제
             currentStamina = currentStamina - staminaDrainRateDodge; // 스태미나 소모
-            
+
         }
         else
         {
@@ -320,8 +355,6 @@ public class PlayerContorler : MonoBehaviour
 
         }
     }
-
-    
 
     public void GetDamage(int damage)
     {
@@ -348,8 +381,8 @@ public class PlayerContorler : MonoBehaviour
             isAttack = true;
             animator.SetTrigger("isAttack"); // 공격 애니메이션 설정
 
-            currentStamina -= currentStamina - staminaDrainRateAttack; // 스태미나 소모
-            
+            currentStamina = currentStamina - staminaDrainRateAttack; // 스태미나 소모
+
             // 화살 공격 (미구현)
             //if (Input.GetButtonUp("Fire2"))
         }
@@ -376,35 +409,6 @@ public class PlayerContorler : MonoBehaviour
         }
     }
 
-    // 무기 교체 처리 (제대로 작동하지 않음, 주운 무기가 없음)
-    void Swap()
-    {
-        int weaponIndex = -1;
-        if (Input.GetButtonDown("Swap1")) weaponIndex = 0;
-        if (Input.GetButtonDown("Swap2")) weaponIndex = 1;
-        if (Input.GetButtonDown("Swap3")) weaponIndex = 2;
-
-        if ((Input.GetButtonDown("Swap1") || Input.GetButtonDown("Swap2") || Input.GetButtonDown("Swap3")) && !isJump && !isDodge)
-        {
-            if (equipWeapon != null)
-            {
-                Weapon[weaponIndex].gameObject.SetActive(false); // 현재 무기 비활성화
-                equipWeapon = Weapon[weaponIndex].GetComponent<Sward>(); // 무기 교체
-                Weapon[weaponIndex].gameObject.SetActive(true); // 새로운 무기 활성화
-
-                animator.SetTrigger("Swap"); // 무기 교체 애니메이션 설정
-                isSwap = true; // 무기 교체 상태 설정
-
-                Invoke("SwapOut", 0.4f); // 0.4초 후 무기 교체 해제
-            }
-        }
-    }
-
-    // 무기 교체 해제
-    void Swapout()
-    {
-        isSwap = false; // 무기 교체 상태 해제
-    }
     void Shield()
     {
         // ShieldCollider = ShieldPrefab.GetComponent<BoxCollider>();
@@ -418,12 +422,13 @@ public class PlayerContorler : MonoBehaviour
             //isShieldActive가 true일떄 스콜피온이 공격을 안하는걸로 되어있는데 ... 내 생각엔 상대가 공격하는데 그 데미지를 무시하고 한번 무시하면 isShieldActive 가 false 되는건데 어... 쉽지않음 보류
 
             print("쉴드중");
-            if (isShieldActive && Scorpion.isAttackTrue) // 쉴드상태일때 적한테 맞으면 Shield hit 애니메이션 재생 
+            if (isShieldActive) //&& Scorpion.isAttackTrue) // 쉴드상태일때 적한테 맞으면 Shield hit 애니메이션 재생 
             {
                 isShieldHit = true;
                 animator.SetBool("isShieldHit", true);
                 print("shield hit!");
                 isShieldActive = false;
+                return;
             }
         }
         else
@@ -433,9 +438,10 @@ public class PlayerContorler : MonoBehaviour
             isShieldActive = false;
             animator.SetBool("isShieldHit", false);
         }
-        if (Input.GetKeyDown(KeyCode.F)) // 쉴드어택 방패로 때림 F
+        if (Input.GetKeyDown(KeyCode.T)) // 쉴드어택 방패로 때림 F
         {
-
+            isShieldActive = false;
+            animator.SetBool("ShieldAttack", true);
         }
         Run = true;
     }
@@ -452,6 +458,22 @@ public class PlayerContorler : MonoBehaviour
                 mob.anim.SetTrigger("Hit"); // 피격 애니메이션 설정
             }
 
+
+
+        }
+        if(other.CompareTag("Respawn"))
+        {
+            canSetRespawn = true; // 리스폰 포인트 설정 가능 상태로 변경
+        }
+
+
+    }
+    void SetRespawnPosition()
+    {
+        if (canSetRespawn && Input.GetKeyDown(KeyCode.E))
+        {
+            SetRespawnPosition();
+            respawnPosition = transform.position; // 현재 위치를 리스폰 위치로 설정
         }
 
     }
@@ -476,18 +498,48 @@ public class PlayerContorler : MonoBehaviour
     void TakeDamage(float atkPower, Vector3 hitDir, Transform attacker)
     {
         currentHP = Mathf.Clamp(currentHP - atkPower, 0, maxHP); // 체력 감소 및 제한
+        if (Input.GetMouseButton(1))
+        {
+            isShieldHit = true;
+            animator.SetBool("isShieldHit", true);
+
+            return;
+        }
 
         if (currentHP <= 0) // 체력이 0 이하일 때
         {
             currentHP = 0;
 
             animator.SetTrigger("Die"); // 사망 애니메이션 설정
+            isDead = true;
             GetComponent<CharacterController>().enabled = false; // 캐릭터 컨트롤러 비활성화
+            CheckRespawn();
         }
         else
         {
             // 피격 애니메이션 설정
             animator.SetTrigger("Hit");
         }
+    }
+    void CheckRespawn()
+    {
+        if (isDead && Respawn != null)
+        {
+            //리스폰으로 이동
+            transform.position = Respawn.position; //리스폰위치로 이동
+            currentHP = maxHP;
+            currentStamina = maxStamina;
+            _hpBar.value = currentHP;
+            _nextHpBar.value = currentHP;
+            isDead = false;
+            GetComponent<CharacterController>().enabled = true; // 캐릭터컨트롤러활성화
+            animator.SetTrigger("Respawn");
+        }
+        //if (Respawn == null)
+        //{
+        //    SceneManager.LoadScene(0);
+        //    return;
+        //}
+
     }
 }

@@ -21,7 +21,7 @@ public class PlayerCheck : MonoBehaviour
             {
                 case PlayerScript.TestScript:
                     TestScripts playered = other.gameObject.GetComponent<TestScripts>();
-                    playered.hiding = false;
+                  //  playered.hiding = false;
                     break;
                 case PlayerScript.PlayerController:
                     PlayerContorler player = other.gameObject.GetComponent<PlayerContorler>();
