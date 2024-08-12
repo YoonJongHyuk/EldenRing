@@ -72,5 +72,8 @@ crashlytics-build.properties
 /[Aa]ssets/[Ss]treamingAssets/aa/*
 /Assets/Animations/Lee/DoubleL/One Hand Up
 /Assets/Animations/Lee/Mixamo/Sword and Shield Pack
-/[Aa]ssets/[Rr]esources/[Yy]oon
-Assets/Prefabs/Yoon/Boss.prefab
+/[Aa]ssets/[Rr]esources/[Yy]oon/*
+/[Aa]ssets/[Rr]esources/[Yy]oon.meta
+/[Aa]ssets/[Pp]refabs/[Yy]Yoon/[Bb]oss.prefab
+/[Aa]ssets/[Rr]esources/[Ll]ee/*
+/[Aa]ssets/[Rr]esources/[Ll]ee.meta

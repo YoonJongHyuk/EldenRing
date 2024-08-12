@@ -24,6 +24,7 @@ public class PlayerContorler : MonoBehaviour
     // 구르기 관련 변수들
     bool isDodge; // 구르기 상태
     Vector3 dodgeVec; // 구르기 벡터
+    Transform pivot;
 
     // 백스탭 관련 변수
     bool Backstep = false;
@@ -78,10 +79,11 @@ public class PlayerContorler : MonoBehaviour
 
     // 스태미나 관련 변수들
     public float maxStamina = 1.0f; // 최대 스태미나
-    public float currentStamina = 1.0f; // 현재 스태미나
-    public float staminaRecoveryRate = 0.4f; // 스태미나 회복 속도
+    public float currentStamina; // 현재 스태미나
+    public float staminaRecoveryRate = 0.004f; // 스태미나 회복 속도
     public float staminaDrainRateAttack = 0.2f; // 공격 시 스태미나 소모량
     public float staminaDrainRateDodge = 0.3f; // 구르기 시 스태미나 소모량
+    bool block = true;
 
     //사망
     public GameObject DiePanel;
@@ -138,20 +140,22 @@ public class PlayerContorler : MonoBehaviour
     // Update는 매 프레임 호출됩니다.
     void Update()
     {
-        if (!playerHit && !isDead)
+        if (!playerHit && !isDead && block)
+        {
+            Attack(); // 공격 처리
+            //Shield(); // 쉴드
+            BackStep(); // 빽스탭
+            Stamina(); // 스테미나 처리 
+            Dodge(); // 구르기
+        }
+        if(!playerHit && !isDead)
         {
             Move(); // 이동 처리
             Rotate(); // 회전 처리
             Jump(); // 점프 처리
-            Attack(); // 공격 처리
+            Death(); 
             potion(); // 포션 사용 처리
-            //Shield(); // 쉴드
-            //BackStep(); // 빽스탭
-            Death();
-            Stamina(); // 스테미나 처리 
-            Dodge(); // 구르기
         }
-        
         HPBar(); // 체력바
         
         //Cam(); // Lookon
@@ -163,6 +167,7 @@ public class PlayerContorler : MonoBehaviour
             playerHit = false;
             animator.SetTrigger("Hit");
         }
+        print(currentStamina);
     }
 
     void PlayerHitAfter()
@@ -199,13 +204,24 @@ public class PlayerContorler : MonoBehaviour
 
     void Stamina()
     {
-        // 스태미나 회복 처리
+        // 스태미나 회복 처리 // 회복이 안됨 -- 해결
         currentStamina = Mathf.Clamp(currentStamina + staminaRecoveryRate * Time.deltaTime, 0, maxStamina);
-        if (currentStamina >= maxStamina)
+        // 현재 소비할려는 스테미너 보다 사용량이 적을경우
+        
+    
+    }
+    void staminaValue(float Value)
+    {
+        if (currentStamina < Value)
         {
-            
-            currentStamina = maxStamina;
+            // 행동을 불가능하게 함
+            block = false;
+        if (currentStamina > Value)
+            {
+                block = true;
+            }
         }
+
 
     }
 
@@ -238,8 +254,7 @@ public class PlayerContorler : MonoBehaviour
             Run = true;
             transform.position += moveVec * MoveSpeed * 2.0f * Time.deltaTime; // 달리기 속도로 이동
             animator.SetBool("isRun", true); // 달리기 애니메이션 설정
-            currentStamina -= Mathf.Clamp(currentStamina + staminaRecoveryRate * Time.deltaTime, 0, maxStamina);
-
+            
         }
         else
         {
@@ -283,7 +298,7 @@ public class PlayerContorler : MonoBehaviour
     void BackStep()
     {
 
-        if (Input.GetKeyDown(KeyCode.F) && BackVec.magnitude == 0)
+        if (Input.GetKeyDown(KeyCode.U) && BackVec.magnitude == 0)
         {
             Backstep = true;
             Vector3 backVec = -transform.forward * 3.0f;
@@ -291,7 +306,7 @@ public class PlayerContorler : MonoBehaviour
             transform.Translate(backVec, Space.World);
             animator.SetBool("Backstep", true);
             currentStamina = currentStamina - staminaDrainRateDodge;
-
+            staminaValue(staminaDrainRateDodge);
         }
         else
         {
@@ -311,27 +326,31 @@ public class PlayerContorler : MonoBehaviour
         }
     }
 
-    void Dodge()
+    void Dodge() // 애니메이션이 true에서 빠져나가지 못함 
     {
         if (Input.GetKeyDown(KeyCode.F))// && isMove && !isJump)
         {
-            dodgeVec = transform.forward * 3.0f;// 구르기 벡터 설정
-            transform.Translate(dodgeVec, Space.World);
-            // rb.AddForce(Vector3.up * 5, ForceMode.Impulse); // 위로 힘을 가해 구르기
-            animator.SetBool("isDodge", true); // 구르기 애니메이션 설정
-            isDodge = true; // 구르기 상태 설정
+            Vector3 dodgeVec = new Vector3(h, 0, v);  // 구르기 벡터 설정
+            transform.Translate(dodgeVec * Time.deltaTime);
             Invoke("DodgeOut", 0.5f); // 0.5초 후 구르기 해제
             currentStamina = currentStamina - staminaDrainRateDodge; // 스태미나 소모
-
-        }
+            staminaValue(staminaDrainRateDodge);
+            animator.SetBool("isDodge", true); // 구르기 애니메이션 설정
+            isDodge = true; // 구르기 상태 설정
+            return;
+        } // 아 여기서 못빠져나간다;;;;
+        //if(isDodge)
+        //{
+        //    return;
+        //}
         else
         {
             isDodge = false; // 구르기 상태 해제
             animator.SetBool("isDodge", false);
             CancelInvoke();
             
-
         }
+       
     }
 
     public void GetDamage(int damage)
@@ -360,12 +379,11 @@ public class PlayerContorler : MonoBehaviour
 
             currentStamina = currentStamina - staminaDrainRateAttack; // 스태미나 소모
 
+            staminaValue(staminaDrainRateAttack);
             // 화살 공격 (미구현)
             //if (Input.GetButtonUp("Fire2"))
         }
         
-        
-
     }
 
     void StartAttack()
