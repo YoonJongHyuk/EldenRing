@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 90b07f1d256e10740b22aaf9f2af7b62
+guid: 568d8a198b7c3714da6927fd3c3bdd37
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable:
@@ -335,7 +335,7 @@ ModelImporter:
     second: root
   - first:
       74: 7400000
-    second: GetHit2
+    second: HitDealy
   - first:
       95: 9500000
     second: //RootNode
@@ -369,11 +369,11 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: GetHit2
+      name: HitDealy
       takeName: Take 001
       internalID: 0
       firstFrame: 0
-      lastFrame: 20
+      lastFrame: 60
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -393,7 +393,7 @@ ModelImporter:
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves: []
       events:
-      - time: 0.9752496
+      - time: 0.78842324
         functionName: HitAfter
         data: 
         objectReferenceParameter: {instanceID: 0}

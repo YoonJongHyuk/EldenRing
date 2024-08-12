@@ -18,4 +18,9 @@ public class EventManager : MonoBehaviour
         }
     }
 
+    //void ReStartButton()
+    //{
+    //    if(Input.GetKeyDown(KeyCode.f5))
+    //}
+
 }

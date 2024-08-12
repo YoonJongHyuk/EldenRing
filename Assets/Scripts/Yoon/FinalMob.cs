@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Assertions.Must;
@@ -10,18 +11,22 @@ using static yoon.Mob;
 public class FinalMob : MonoBehaviour
 {
 
-    float distanceToPlayer; // 플레이어와의 거리
+    public float distanceToPlayer; // 플레이어와의 거리
 
     public float moveSpeed = 1f;
     float currentSpeed;
 
     public TMP_Text hpText;
 
-    public int thisHP;
+    //public int thisHP;
 
-    public bool isDead;
+    public bool isDead = false;
     public bool isAttackTrue; // 공격 여부 체크
+    public bool isDelayTrue = false;
 
+    public bool monsterHit = false;
+
+    public int thisHP;
 
     public float attackRange; // 공격 범위
     public float checkRange; // 시야 범위
@@ -49,7 +54,7 @@ public class FinalMob : MonoBehaviour
     private Transform[] points;
 
     public int scorpionDamage = 5;
-    int scorpionHP;
+    public int scorpionHP;
     int nextHP;
     float currentTime = 0;
     private float lerpDuration = 1.5f; // 체력이 천천히 빠질 시간 (1.5초)
@@ -74,17 +79,14 @@ public class FinalMob : MonoBehaviour
     Transform target;
 
 
-    public int ScorpionHP
-    {
-        get => scorpionHP;
-        private set => scorpionHP = Mathf.Clamp(value, 0, scorpionHP);
-    }
 
     private Camera mainCamera; // 메인 카메라 참조
     public float hideDistance = 10f; // 체력바를 숨길 거리
 
     private void Start()
     {
+        playerHideTrue = true;
+        playerScript = GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerContorler>();
         mainCamera = Camera.main; // 메인 카메라 초기화
         navMeshAgent = GetComponent<NavMeshAgent>();
         anim = GetComponent<Animator>();
@@ -102,59 +104,116 @@ public class FinalMob : MonoBehaviour
 
     }
 
+    private void Awake()
+    {
+        scorpionHP = thisHP;
+        nextHP = scorpionHP;
+        _hpBar.maxValue = scorpionHP;
+        _hpBar.value = scorpionHP;
+        _nextHpBar.maxValue = scorpionHP; // nextHP 슬라이더 초기화
+        _nextHpBar.value = scorpionHP;
+    }
+
     private void Update()
     {
-        if (!isAttackTrue)
+        if (!monsterHit && !isDead)
         {
-            RangeCheck();
+            if (!isAttackTrue)
+            {
+                RangeCheck();
+            }
+
+            if (playerHideTrue)
+            {
+                WayPointMove();
+            }
+            else if (!playerHideTrue)
+            {
+                NavMeshPlayer();
+            }
+
+            if (isJumpTrue && !isAttackTrue && isDead != true)
+            {
+                print("이게 문제다");
+                anim.SetTrigger("JumpAttack");
+                AttackDelay();
+
+                navMeshAgent.isStopped = true;
+            }
+
+            else if (isJumpTrue && isAttackTrue)
+            {
+                FrontJump();
+            }
+
+            if (moveSpeed != 0)
+            {
+                anim.SetBool("Move", true);
+            }
+            else if (moveSpeed == 0)
+            {
+                anim.SetBool("Move", false);
+            }
+
+            if (Physics.Raycast(transform.position, transform.forward, out RaycastHit hitFront, 6f, (1 << 10)))
+            {
+                // Y축 회전을 유지하면서 X축 회전을 0도로 설정
+                transform.rotation = Quaternion.Euler(0, transform.eulerAngles.y, transform.eulerAngles.z);
+            }
+        }
+        else
+        {
+
         }
 
-        if (isFrontTrue && !isAttackTrue)
+        if (_nextHpBar.value != nextHP)
         {
-            anim.SetTrigger("JumpAttack");
+            currentTime += Time.deltaTime;
+
+            if (currentTime >= delayDuration)
+            {
+                float t = (currentTime - delayDuration) / lerpDuration;
+                _nextHpBar.value = Mathf.Lerp(_nextHpBar.value, nextHP, t);
+
+                if (Mathf.Abs(_nextHpBar.value - nextHP) < 0.01f)
+                {
+                    _nextHpBar.value = nextHP;
+                    currentTime = 0.0f;
+                }
+            }
         }
 
-        else if (isFrontTrue && isBackPlayer && isAttackTrue)
-        {
-            FrontJump();
-        }
-
-        if (moveSpeed != 0)
-        {
-            anim.SetBool("Move", true);
-        }
-        else if (moveSpeed == 0)
-        {
-            anim.SetBool("Move", false);
-        }
         UpdateHPBarVisibility();
     }
 
-    void DelayTime()
+    void Die()
     {
-        print("DelayTime");
-        currentTime += Time.deltaTime;
-        if (currentTime > 3f)
-        {
-            currentTime = 0;
-            isBackPlayer = false;
-            moveSpeed = currentSpeed;
-        }
+        anim.SetTrigger("Death");
+        navMeshAgent.isStopped = true;
+        moveSpeed = 0;
+        StartCoroutine(DestroyMonster());
     }
+
+    IEnumerator DestroyMonster()
+    {
+        yield return new WaitForSeconds(3f);
+        Destroy(gameObject);
+    }
+
 
     void FrontJump()
     {
-        if (!isJumpTrue) // 이미 점프 중이면 추가 점프를 방지
+        if (!isJumpTrue)
         {
-            navMeshAgent.enabled = false;
-            print("BackJump");
+            navMeshAgent.isStopped = true;
+            //print("BackJump");
 
             Vector3 dir = transform.forward + transform.up;
             dir.Normalize();
             Rigidbody rb = GetComponent<Rigidbody>();
 
             rb.AddForce(dir * jumpPower, ForceMode.Impulse);
-            
+
             StartCoroutine(CheckLanding()); // 착지 체크를 코루틴으로 실행
         }
     }
@@ -175,13 +234,9 @@ public class FinalMob : MonoBehaviour
                     isBackPlayer = false; // 백점프 종료
                     isJumpTrue = false; // 점프 상태 해제
                     moveSpeed = currentSpeed; // 이동 속도 복원
-                    print("안쪽 isAttackTrue " + isAttackTrue);
-                    navMeshAgent.enabled = true; // 네비게이션 재활성화
+                    //print("안쪽 isAttackTrue " + isAttackTrue);
+                    navMeshAgent.isStopped = false; // 네비게이션 재활성화
                 }
-            }
-            if(Physics.Raycast(transform.position, Vector3.forward, out RaycastHit hitFront, 1f, (1 << 10)))
-            {
-                transform.rotation = Quaternion.Euler(0, transform.eulerAngles.y, transform.eulerAngles.z);
             }
             yield return new WaitForSeconds(0.1f); // 착지 여부를 반복적으로 확인
         }
@@ -189,7 +244,7 @@ public class FinalMob : MonoBehaviour
 
     public void GetDamage(int damage)
     {
-        if (scorpionHP > 0)
+        if (scorpionHP > 0 && !isDead)
         {
             scorpionHP -= damage;
             _hpBar.value = scorpionHP;
@@ -197,8 +252,23 @@ public class FinalMob : MonoBehaviour
             currentTime = 0.0f; // 새 데미지를 받을 때마다 currentTime을 초기화
             totalDamageTaken += damage; // 누적 데미지 업데이트
             UpdateDamageText(); // 데미지 텍스트 업데이트
+
+            if (scorpionHP <= 0)
+            {
+                isDead = true;
+                Die();
+            }
+            else
+            {
+                anim.SetTrigger("Hit");
+                AttackDelay();
+            }
         }
     }
+
+
+
+
     private void UpdateDamageText()
     {
         hpText.text = totalDamageTaken.ToString();
@@ -208,8 +278,8 @@ public class FinalMob : MonoBehaviour
     void NavMeshPlayer()
     {
         
-        print("NavMeshPlayer");
-        navMeshAgent.enabled = true;
+        //print("NavMeshPlayer");
+        navMeshAgent.isStopped = false;
         moveSpeed = currentSpeed;
         
         if (target != null)
@@ -222,7 +292,7 @@ public class FinalMob : MonoBehaviour
     {
         if (isJumpTrue)
             return;
-        print("RangeCheck");
+        //print("RangeCheck");
         target = GameObject.FindGameObjectWithTag("Player").transform;
 
         // Ray 시작 위치를 현재 transform.position에서 y값을 0.5로 변경
@@ -233,47 +303,29 @@ public class FinalMob : MonoBehaviour
         Ray backRay = new Ray(rayOrigin, -transform.forward);
 
 
-        RaycastHit hitInfo;
-        
-
         distanceToPlayer = Vector3.Distance(target.position, transform.position);
 
 
 
-        // 시야범위에 들어왔으면서 공격범위보다 멀리 있으면...
-        if(checkRange >= distanceToPlayer && attackRange < distanceToPlayer && !isBackPlayer)
+        // 플레이어를 발견했지만 공격 범위에 있지 않은 경우
+        if (checkRange >= distanceToPlayer && attackRange < distanceToPlayer && !isBackPlayer)
         {
-            NavMeshPlayer();
+            playerHideTrue = false;
+            isJumpTrue = false;
+            transform.LookAt(target.transform.position);
+            navMeshAgent.isStopped = false;
         }
+        // 공격 범위에 들어온 경우
+        else if (attackRange >= distanceToPlayer && !isBackPlayer)
+        {
+            isJumpTrue = true;
+            // 추가 동작이 필요한 경우 여기에 작성
+        }
+        // 플레이어가 발견 범위를 넘어선 경우
         else if (checkRange < distanceToPlayer)
         {
-            WayPointMove();
-        }
-
-
-
-        if (Physics.Raycast(ray, out hitInfo, attackRange, (1 << 11)))
-        {
-            print("frontRay 된다");
-            isFrontTrue = true;
-        }
-        else
-        {
-            isFrontTrue = false;
-        }
-
-
-        if (Physics.Raycast(backRay, out hitInfo, attackRange, (1 << 11)))
-        {
-            print("backRay 된다");
-            if (!isAttackTrue )
-            {
-                isBackPlayer = true;
-            }
-        }
-        else
-        {
-            isBackPlayer = false;
+            playerHideTrue = true;
+            isJumpTrue = false;
         }
         
     }
@@ -281,14 +333,83 @@ public class FinalMob : MonoBehaviour
 
     public void Attack()
     {
-        print("Attack");
-        isAttackTrue = true;
+        if ((!isDead))
+        {
+            print("Attack");
+            isAttackTrue = true;
+        }
     }
 
     public void AttackAfter()
     {
-        print("AttackAfter");
-        isAttackTrue = false;
+        if ((!isDead))
+        {
+            print("AttackAfter");
+            isAttackTrue = false;
+            isJumpTrue = true;
+        }
+    }
+
+    void AttackDelay()
+    {
+        currentTime += Time.deltaTime;
+        moveSpeed = 0;
+        transform.LookAt(playerScript.transform.position);
+        if (currentTime > 4f)
+        {
+            currentTime = 0;
+            anim.SetTrigger("delayFinish");
+            navMeshAgent.isStopped = false;
+            isDelayTrue = false;
+            moveSpeed = currentSpeed;
+        }
+    }
+
+    void HitAfter()
+    {
+        monsterHit = false;
+        if (isAttackTrue == true)
+        {
+            isAttackTrue = false;
+        }
+        isDelayTrue = false;
+        NavMeshPlayer();
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        
+        if (other.gameObject.CompareTag("Melee") && playerScript.hit && !isDead)
+        {
+            Sward sward = other.GetComponent<Sward>();
+            print("hiyMonster");
+            playerScript.hit = false;
+            monsterHit = true;
+            GetDamage(sward.attackPower);
+            return;
+        }
+
+        if (other.gameObject.CompareTag("Player"))
+        {
+            //PlayerContorler player = other.GetComponent<PlayerContorler>();
+            print("플레이어 피격");
+
+            //player.GetDamage(scorpionDamage);
+            //isAttackTrue = false;
+        }
+    }
+
+    private void OnCollisionStay(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Player") && isAttackTrue && !isDead)
+        {
+            PlayerContorler player = collision.gameObject.GetComponent<PlayerContorler>();
+            print("플레이어 피격");
+
+            playerScript.playerHit = true;
+            player.GetDamage(scorpionDamage);
+            isAttackTrue = false;
+        }
     }
 
 
@@ -296,10 +417,9 @@ public class FinalMob : MonoBehaviour
     #region 웨이포인트 함수
     void WayPointMove()
     {
-        print("WayPointMove");
         moveSpeed = currentSpeed;
         
-        navMeshAgent.enabled = false; // NavMeshAgent 비활성화
+        navMeshAgent.isStopped = true; // NavMeshAgent 비활성화
         if (points.Length == 0) return;
 
         Vector3 direction = points[nextIndex].position - transform.position;
