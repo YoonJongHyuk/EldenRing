@@ -216,7 +216,8 @@ public class PlayerContorler : MonoBehaviour
         {
             // 행동을 불가능하게 함
             block = false;
-        if (currentStamina > Value)
+            return;
+            if (currentStamina > Value)
             {
                 block = true;
             }
@@ -328,29 +329,23 @@ public class PlayerContorler : MonoBehaviour
 
     void Dodge() // 애니메이션이 true에서 빠져나가지 못함 
     {
+            
         if (Input.GetKeyDown(KeyCode.F))// && isMove && !isJump)
         {
             Vector3 dodgeVec = new Vector3(h, 0, v);  // 구르기 벡터 설정
             transform.Translate(dodgeVec * Time.deltaTime);
-            Invoke("DodgeOut", 0.5f); // 0.5초 후 구르기 해제
             currentStamina = currentStamina - staminaDrainRateDodge; // 스태미나 소모
             staminaValue(staminaDrainRateDodge);
             animator.SetBool("isDodge", true); // 구르기 애니메이션 설정
             isDodge = true; // 구르기 상태 설정
-            return;
-        } // 아 여기서 못빠져나간다;;;;
-        //if(isDodge)
-        //{
-        //    return;
-        //}
+            //return;
+        } 
         else
         {
             isDodge = false; // 구르기 상태 해제
             animator.SetBool("isDodge", false);
-            CancelInvoke();
-            
         }
-       
+
     }
 
     public void GetDamage(int damage)
