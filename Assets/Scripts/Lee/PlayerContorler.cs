@@ -6,13 +6,14 @@ using UnityEngine.UI;
 using Cinemachine;
 using UnityEngine.SceneManagement;
 using TMPro;
+using Unity.VisualScripting;
 
 public class PlayerContorler : MonoBehaviour
 {
     // 이동 관련 변수들
     public float MoveSpeed; // 이동 속도
     float h, v; // 수평 및 수직 입력값
-    bool isMove;
+    bool isMove = true;
     bool Run; // 달리기 여부
     Vector3 moveVec; // 이동 벡터
     public Transform cameraTransform; // 카메라 Transform
@@ -80,10 +81,12 @@ public class PlayerContorler : MonoBehaviour
     // 스태미나 관련 변수들
     public float maxStamina = 1.0f; // 최대 스태미나
     public float currentStamina; // 현재 스태미나
-    public float staminaRecoveryRate = 0.004f; // 스태미나 회복 속도
-    public float staminaDrainRateAttack = 0.2f; // 공격 시 스태미나 소모량
-    public float staminaDrainRateDodge = 0.3f; // 구르기 시 스태미나 소모량
+    public float staminaRecoveryRate = 0.0004f; // 스태미나 회복 속도
+    public float staminaDrainRateAttack = 0.1f; // 공격 시 스태미나 소모량
+    float staminaDrainRatePowerAttack = 0.2f; // 강공격 시 스태미나 소모량 
+    public float staminaDrainRateDodge = 0.15f; // 구르기 시 스태미나 소모량
     bool block = true;
+    
 
     //사망
     public GameObject DiePanel;
@@ -140,28 +143,31 @@ public class PlayerContorler : MonoBehaviour
     // Update는 매 프레임 호출됩니다.
     void Update()
     {
-        if (!playerHit && !isDead && block)
-        {
-            Attack(); // 공격 처리
-            //Shield(); // 쉴드
-            BackStep(); // 빽스탭
-            Stamina(); // 스테미나 처리 
-            Dodge(); // 구르기
-        }
-        if(!playerHit && !isDead)
+        if (!playerHit && !isDead)
         {
             Move(); // 이동 처리
             Rotate(); // 회전 처리
             Jump(); // 점프 처리
-            Death(); 
+            Death();
             potion(); // 포션 사용 처리
+            Stamina(); // 스테미나 처리 
+            Attack(); // 공격 처리
+            //Shield(); // 쉴드
+            BackStep(); // 빽스탭
+            Dodge(); // 구르기
+            PowerAttack(); // 강공격
         }
+        if(!isMove)
+        {
+            Move();
+            Jump();
+        }
+        
         HPBar(); // 체력바
         
         //Cam(); // Lookon
         CheckRespawn(); // 리스폰 체크 및 리스폰
         SetRespawnPosition(); //리스폰 프리팹 상호작용
-        currentStamina = Mathf.Clamp(currentStamina + staminaRecoveryRate * Time.deltaTime, 0, maxStamina);
         if (playerHit && !isDead)
         {
             playerHit = false;
@@ -207,31 +213,31 @@ public class PlayerContorler : MonoBehaviour
         // 스태미나 회복 처리 // 회복이 안됨 -- 해결
         currentStamina = Mathf.Clamp(currentStamina + staminaRecoveryRate * Time.deltaTime, 0, maxStamina);
         // 현재 소비할려는 스테미너 보다 사용량이 적을경우
-        
     
     }
-    void staminaValue(float Value)
+
+    void staminaValue(float value)
     {
-        if (currentStamina < Value)
+        // 스태미나가 소모량보다 적으면 애니메이션 block
+        if (currentStamina < value)
         {
-            // 행동을 불가능하게 함
-            block = false;
             return;
-            if (currentStamina > Value)
-            {
-                block = true;
-            }
         }
-
-
+        // 스태미나가 소모량보다 많으면 애니메이션 non-lock
+        else if (currentStamina >= value)
+        {
+            currentStamina = currentStamina - value;
+        }
     }
 
     // 기본 움직임 처리
     void Move()
     {
-        h = Input.GetAxisRaw("Horizontal"); // 수평 입력 값 가져오기
-        v = Input.GetAxisRaw("Vertical"); // 수직 입력 값 가져오기
-        Run = Input.GetButton("shift"); // 달리기 입력 값 가져오기
+        
+            h = Input.GetAxis("Horizontal"); // 수평 입력 값 가져오기
+            v = Input.GetAxis("Vertical"); // 수직 입력 값 가져오기
+            Run = Input.GetButton("shift"); // 달리기 입력 값 가져오기
+        
 
         // 카메라의 forward와 right 방향 가져오기
         Vector3 cameraForward = cameraTransform.forward;
@@ -250,7 +256,7 @@ public class PlayerContorler : MonoBehaviour
 
 
         //이동 처리
-        if (Run)
+        if ((Run) && !isAttack)
         {
             Run = true;
             transform.position += moveVec * MoveSpeed * 2.0f * Time.deltaTime; // 달리기 속도로 이동
@@ -260,11 +266,19 @@ public class PlayerContorler : MonoBehaviour
         else
         {
             Run = false;
+            isMove = true;
             transform.position += moveVec * MoveSpeed * Time.deltaTime; // 걷기 속도로 이동
+            if (isAttack)
+            {
+                MoveSpeed = 0;
+                transform.position += moveVec * MoveSpeed * Time.deltaTime; // 걷기 속도로 이동
+                return;
+            }
             animator.SetBool("isRun", false); // 달리기 애니메이션 해제
-
+            
         }
 
+        MoveSpeed = 3.0f;
         animator.SetBool("isWalk", moveVec != Vector3.zero); // 걷기 애니메이션 설정
         Run = false;
         
@@ -291,29 +305,31 @@ public class PlayerContorler : MonoBehaviour
             rb.AddForce(Vector3.up * 5, ForceMode.Impulse); // 위로 힘을 가해 점프
             animator.SetTrigger("isJump"); // 점프 애니메이션 설정
             isJump = true; // 점프 상태 설정
+            isMove = false;
         }
-
+        isMove = true;
         isJump = false;
     }
 
     void BackStep()
     {
-
-        if (Input.GetKeyDown(KeyCode.U) && BackVec.magnitude == 0)
+        // 이동하게 해야함 
+        if (Input.GetKeyDown(KeyCode.U) )
         {
-            Backstep = true;
-            Vector3 backVec = -transform.forward * 3.0f;
+            if (currentStamina >= staminaDrainRateDodge)
+            {
+                Backstep = true;
+                Vector3 backVec = -transform.forward;
 
-            transform.Translate(backVec, Space.World);
-            animator.SetBool("Backstep", true);
-            currentStamina = currentStamina - staminaDrainRateDodge;
-            staminaValue(staminaDrainRateDodge);
-        }
-        else
-        {
-            animator.SetBool("Backstep", false);
-            Backstep = false;
-            
+                rb.AddForce(backVec * MoveSpeed, ForceMode.VelocityChange);
+                staminaValue(staminaDrainRateDodge);
+                animator.SetTrigger("Backstep");
+            }
+            else
+            {
+                Backstep = false;
+                return;
+            }
         }
     }
 
@@ -327,23 +343,32 @@ public class PlayerContorler : MonoBehaviour
         }
     }
 
-    void Dodge() // 애니메이션이 true에서 빠져나가지 못함 
+    void Dodge()
     {
-            
-        if (Input.GetKeyDown(KeyCode.F))// && isMove && !isJump)
+        if (Input.GetKeyDown(KeyCode.F) && !isJump && !Backstep)
         {
-            Vector3 dodgeVec = new Vector3(h, 0, v);  // 구르기 벡터 설정
-            transform.Translate(dodgeVec * Time.deltaTime);
-            currentStamina = currentStamina - staminaDrainRateDodge; // 스태미나 소모
-            staminaValue(staminaDrainRateDodge);
-            animator.SetBool("isDodge", true); // 구르기 애니메이션 설정
-            isDodge = true; // 구르기 상태 설정
-            //return;
-        } 
-        else
-        {
-            isDodge = false; // 구르기 상태 해제
-            animator.SetBool("isDodge", false);
+            // 스태미나가 충분한지 체크
+            if (currentStamina >= staminaDrainRateDodge)
+            {
+                // 스태미나가 충분하면 구르기 실행
+                Vector3 dodgeVec = new Vector3(h, 0, v).normalized;  // 구르기 벡터 설정
+                rb.AddForce(dodgeVec * MoveSpeed, ForceMode.VelocityChange);
+
+                // 스태미나 소비
+                staminaValue(staminaDrainRateDodge);
+
+                // 애니메이션 실행
+
+                animator.SetTrigger("isDodge"); // 구르기 애니메이션 설정
+                isDodge = true; // 구르기 상태 설정
+                
+            }
+            else
+            {
+                // 스태미나가 부족하면 구르기 실행 안함
+                isDodge = false;
+                
+            }
         }
 
     }
@@ -366,26 +391,73 @@ public class PlayerContorler : MonoBehaviour
         if (equipWeapon == null)
             return; // 무기가 없다면 공격 중지
 
-
-        if (Input.GetButtonDown("Fire1") && !isDodge && !isSwap && !isAttack)
+        if (Input.GetButtonDown("Fire1"))
         {
-            
-            animator.SetTrigger("isAttack"); // 공격 애니메이션 설정
+            if (currentStamina >= staminaDrainRateAttack)
+            {
+                staminaValue(staminaDrainRateAttack);
 
-            currentStamina = currentStamina - staminaDrainRateAttack; // 스태미나 소모
+                animator.SetTrigger("isAttack"); // 공격 애니메이션 설정
+                isAttack = true;
+                isMove = false;
+            }
+            else
+            {
+                isMove = true;
+                isAttack = false;
+                return;
+            }
 
-            staminaValue(staminaDrainRateAttack);
-            // 화살 공격 (미구현)
-            //if (Input.GetButtonUp("Fire2"))
         }
         
     }
+    void PowerAttack()
+    {
+        if (equipWeapon == null)
+        {
+            return;
+        }
+        if(Input.GetButtonDown("PowerAttack"))
+        {
+            if(currentStamina >= staminaDrainRatePowerAttack)
+            {
+                staminaValue(staminaDrainRateAttack);
+
+                animator.SetTrigger("PowerAttack");
+                isMove =false;
+            }
+            else
+            {
+                isMove = true;
+                return;
+            }
+        }
+    }
+    #region 애니메이션 이벤트 모음
+    void StartJump()
+    {
+        isJump = true;
+        isMove = false;
+    }
+    void EndJump()
+    {
+        isJump = false;
+        isMove = true;
+    }
+
+    void aniMove()
+    {
+        isMove = false;
+        Run = false;
+    }
+   
 
     void StartAttack()
     {
         isAttack = true;
         hit = true;
         print("공격시작. isAttack의 값은" + isAttack);
+        
     }
 
     void EndAttack()
@@ -394,6 +466,8 @@ public class PlayerContorler : MonoBehaviour
         hit = false;
         print("공격끝. isAttack의 값은" + isAttack);
     }
+
+    #endregion 
 
     // 회복 아이템 사용 (R 키 누르면 작동)
     void potion()
@@ -485,35 +559,6 @@ public class PlayerContorler : MonoBehaviour
             hitMonster.Clear(); // 데미지를 입힌 후 리스트 초기화
         }
     }
-
-    //// 데미지 입기 처리 (리지드바디를 사용하여 데미지 처리 미구현)
-    //void TakeDamage(float atkPower, Vector3 hitDir, Transform attacker)
-    //{
-    //    currentHP = Mathf.Clamp(currentHP - atkPower, 0, maxHP); // 체력 감소 및 제한
-    //    if (Input.GetMouseButton(1))
-    //    {
-    //        isShieldHit = true;
-    //        animator.SetBool("isShieldHit", true);
-
-    //        return;
-    //    }
-
-    //    if (currentHP <= 0 && isDead == false) // 체력이 0 이하일 때
-    //    {
-    //        currentHP = 0;
-
-    //        animator.SetTrigger("Die"); // 사망 애니메이션 설정
-    //        isDead = true;
-    //        Death();
-    //        GetComponent<CharacterController>().enabled = false; // 캐릭터 컨트롤러 비활성화
-    //        CheckRespawn();
-    //    }
-    //    else
-    //    {
-    //        // 피격 애니메이션 설정
-    //        animator.SetTrigger("Hit");
-    //    }
-    //}
 
     void Death()
     {

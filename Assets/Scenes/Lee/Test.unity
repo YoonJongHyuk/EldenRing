@@ -167,6 +167,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Shield
       objectReference: {fileID: 0}
+    - target: {fileID: 1389201483412086964, guid: 1d0753f10553b89499484c6df2f008d2,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5271527897486862757, guid: 1d0753f10553b89499484c6df2f008d2,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -6565,9 +6570,9 @@ MonoBehaviour:
   animator: {fileID: 0}
   maxStamina: 100
   currentStamina: 0
-  staminaRecoveryRate: 20
-  staminaDrainRateAttack: 20
-  staminaDrainRateDodge: 30
+  staminaRecoveryRate: 5
+  staminaDrainRateAttack: 10
+  staminaDrainRateDodge: 15
   DiePanel: {fileID: 630278311}
   _hpBar: {fileID: 1864854151}
   _nextHpBar: {fileID: 1083361227}
