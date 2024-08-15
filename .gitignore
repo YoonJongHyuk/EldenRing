@@ -77,3 +77,5 @@ crashlytics-build.properties
 /[Aa]ssets/[Pp]refabs/[Yy]Yoon/[Bb]oss.prefab
 /[Aa]ssets/[Rr]esources/[Ll]ee/*
 /[Aa]ssets/[Rr]esources/[Ll]ee.meta
+/[Pp]ackages/[Cc]om.singularitygroup.hotreload/*
+/[Pp]ackages/[Cc]om.singularitygroup.hotreload.meta
