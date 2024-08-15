@@ -109,6 +109,12 @@ public class PlayerContorler : MonoBehaviour
     private Vector3 respawnPosition;
     private bool canSetRespawn = false; // 리스폰 포인트 설정 가능 여부
 
+    //오디오
+    //AudioClip potionClip;
+    //public GameObject potion1;
+    //public GameObject Die;
+
+
 
     Scorpion Scorpion;
 
@@ -481,6 +487,7 @@ public class PlayerContorler : MonoBehaviour
             portionNum--;
             portionText.text = portionNum.ToString();
 
+            
             // 체력을 최대값으로 제한
             if (currentHP >= maxHP)
             {
