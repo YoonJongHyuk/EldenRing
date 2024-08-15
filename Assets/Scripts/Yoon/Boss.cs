@@ -1,7 +1,8 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
+using UnityEngine.UI;
 
 namespace yoon
 {
@@ -9,27 +10,39 @@ namespace yoon
     {
         public enum BossPattern
         {
+            // 보스 애니메이션 상태
+            // 보스 기본 상태 ==============
             Move,
             TurnLeft,
             TurnRight,
             Idle,
+            // 보스 1페이즈 ================
             Cry,
             LegSweepAttack,
             LegFoundAttack,
             TaleAttack,
             DiagonalAvoidance,
             DiagonalTackle,
+            // 보스 2페이즈 ================
+            // isFlyTrue == false ==========
             FireCry2,
             FireBreath2,
             Fly2,
+            // =========================
+
+            // isFlyTrue == true
             Flying2,
             Fall2,
+            // =========================
+
+            // isFlyTrue == false ==========
             FanShapedFireBreath2,
             LegSweepAttack2,
             LegFoundAttack2,
             DiagonalAvoidance2,
             DiagonalTackle2,
             Death
+            // =============================
         }
 
         public enum BossPhase
@@ -45,10 +58,21 @@ namespace yoon
 
         Animator anim;
 
-        int bossAttackPower;
-        int patternCount;
+        NavMeshAgent navMeshAgent;
 
-        float bossSpeed = 1.0f;
+        int bossAttackPower;
+
+        public int bossHP;
+        public int bossMaxHP;
+
+        [SerializeField]
+        private Slider _hpBar;
+
+        [SerializeField]
+        private Slider _nextHpBar; // nextHP 용 슬라이더 추가
+
+        float bossSpeed = 0.0f;
+        float distance;
 
         public bool fristPlayerCheck = false;
         private bool BattleStartTrue = false;
@@ -56,6 +80,20 @@ namespace yoon
 
         public bool canPlay = false;
         bool isFlyTrue = false;
+        bool isNearTrue = true;
+
+        public int patternCount;
+
+        /*
+         패턴 설명
+        0 = Idle 상태
+        1 = 이동, 보통은 플레이어 접근
+        2 = 근접 공격(LegSweepAttack,LegFoundAttack,TaleAttack)
+        3 = 회피 후 몸통 박치기(DiagonalAvoidance)
+        4 = Cry 후 1번으로 변경
+        5 = 플레이어와의 거리 체크
+        */
+
 
         private void Start()
         {
@@ -65,34 +103,138 @@ namespace yoon
         private void Update()
         {
             StartScene();
+            LoopAnimationCheck();
+            MoveTowardsPlayer();
 
-            if (canPlay)
+
+
+            if(patternCount == 0)
             {
-                RandomPattern();
-                canPlay = false; // 한 번 실행 후 멈추도록
+                ChangePattern(BossPattern.Idle);
             }
+            else if(patternCount == 1)
+            {
+                PlayerChase();
+            }
+            else if(patternCount == 2)
+            {
+                RandomAttack();
+            }
+            else if (patternCount == 3)
+            {
+                return;
+            }
+            else if (patternCount == 4)
+            {
+                ChangePattern(BossPattern.Cry);
+            }
+            else if(patternCount == 5)
+            {
+                DistanceCheck();
+            }
+
+
+            #region 버튼 테스트
+            if (Input.GetKeyDown(KeyCode.H))
+            {
+                ChangePattern(BossPattern.FireCry2);
+            }
+            
+
+
+            if (Input.GetKeyDown(KeyCode.R))
+            {
+                ChangePattern(BossPattern.Fly2);
+            }
+            if (Input.GetKeyDown(KeyCode.S))
+            {
+                ChangePattern(BossPattern.Fall2);
+            }
+            #endregion
+
         }
+
 
         void Setting()
         {
+            bossHP = bossMaxHP;
+            navMeshAgent = GetComponent<NavMeshAgent>();
+            player = GameObject.FindGameObjectWithTag("Player");
             anim = GetComponent<Animator>();
-            patternCount = Enum.GetValues(typeof(BossPattern)).Length;
+            anim.SetTrigger("Idle");
+            anim.SetBool("isFlyTrue", false);
         }
 
         void StartScene()
         {
             if (fristPlayerCheck)
             {
-                canPlay = true;
-                //ChangePattern(BossPattern.Cry);
+                ChangePattern(BossPattern.Cry);
                 fristPlayerCheck = false;
-                //BattleStartTrue = true;
             }
+        }
+
+        void CryAfter()
+        {
+            patternCount = 1;
         }
 
         void MoveTowardsPlayer()
         {
-            //Vector3 dir = 
+            Vector3 currentVelocity = navMeshAgent.velocity;
+            bossSpeed = currentVelocity.magnitude;
+            
+        }
+
+        // 플레이어 쫒기
+        void PlayerChase()
+        {
+            navMeshAgent.SetDestination(player.transform.position);
+            distance = Vector3.Distance(transform.position, player.transform.position);
+            if (distance <= 5)
+            {
+                navMeshAgent.ResetPath();
+                patternCount++;
+            }
+        }
+
+        void DistanceCheck()
+        {
+            distance = Vector3.Distance(transform.position, player.transform.position);
+            TurnToPlayer();
+            if (distance > 5)
+            {
+                patternCount = 1;
+            }
+            else
+            {
+                patternCount = 2;
+            }
+        }
+
+
+        void TurnToPlayer()
+        {
+            transform.LookAt(player.transform.position);
+        }
+
+        // 1페이즈 근접공격
+        void RandomAttack()
+        {
+            int num = Random.Range(0, 3);
+            switch (num)
+            {
+                case 0:
+                    ChangePattern(BossPattern.LegSweepAttack);
+                    break;
+                case 1:
+                    ChangePattern(BossPattern.LegFoundAttack);
+                    break;
+                case 2:
+                    ChangePattern(BossPattern.TaleAttack);
+                    break;
+            }
+            patternCount = 5;
         }
 
         void RandomPattern()
@@ -124,56 +266,36 @@ namespace yoon
 
             StopCoroutine(bossPattern.ToString());
             bossPattern = newPattern;
-            StartCoroutine(HandleAnimation(bossPattern.ToString(), IsLoopingPattern(bossPattern), bossSpeed, isFlyTrue));
+            StartCoroutine(HandleAnimation(bossPattern.ToString()));
         }
 
-        private bool IsLoopingPattern(BossPattern pattern)
+        void Flying()
         {
-            switch (pattern)
+            isFlyTrue = !isFlyTrue;
+
+            anim.SetBool("isFlyTrue", isFlyTrue);
+            print(isFlyTrue);
+        }
+
+        void LoopAnimationCheck()
+        {
+            if (!isFlyTrue)
             {
-                case BossPattern.Idle:
-                case BossPattern.Move:
-                case BossPattern.Flying2:
-                    return true;
-                default:
-                    return false;
+                anim.SetFloat("Speed", bossSpeed);
+            }
+            else if (isFlyTrue)
+            {
+                anim.SetTrigger("Flying2");
             }
         }
 
-        IEnumerator HandleAnimation(string animationName, bool isLooping, float speed, bool isFlyTrue)
+        IEnumerator HandleAnimation(string animationName)
         {
             anim.SetTrigger(animationName);
 
-            if (isLooping)
+            while (anim.GetCurrentAnimatorStateInfo(0).normalizedTime >= 1.0f)
             {
-                while (true)
-                {
-                    if (animationName == "Idle" && speed > 0)
-                    {
-                        anim.SetTrigger("Move");
-                        break;
-                    }
-                    else if (animationName == "Move" && speed == 0)
-                    {
-                        anim.SetTrigger("Idle");
-                        break;
-                    }
-                    else if (animationName == "Flying2" && !isFlyTrue)
-                    {
-                        anim.SetTrigger("Idle");
-                        break;
-                    }
-
-                    yield return null;
-                }
-            }
-            else
-            {
-                while (anim.GetCurrentAnimatorStateInfo(0).normalizedTime >= 1.0f)
-                {
-                    canPlay = true;
-                    yield return null;
-                }
+                yield return null;
             }
         }
 
@@ -184,26 +306,27 @@ namespace yoon
             ChangePattern(BossPattern.FireCry2);
         }
 
-        IEnumerator Move() { yield return StartCoroutine(HandleAnimation("Move", true, bossSpeed, false)); }
-        IEnumerator TurnLeft() { yield return StartCoroutine(HandleAnimation("TurnLeft", false, bossSpeed, false)); }
-        IEnumerator TurnRight() { yield return StartCoroutine(HandleAnimation("TurnRight", false, bossSpeed, false)); }
-        IEnumerator Idle() { yield return StartCoroutine(HandleAnimation("Idle", true, bossSpeed, false)); }
-        IEnumerator Cry() { yield return StartCoroutine(HandleAnimation("Cry", false, bossSpeed, false)); }
-        IEnumerator LegSweepAttack() { yield return StartCoroutine(HandleAnimation("LegSweepAttack", false, bossSpeed, false)); }
-        IEnumerator LegFoundAttack() { yield return StartCoroutine(HandleAnimation("LegFoundAttack", false, bossSpeed, false)); }
-        IEnumerator TaleAttack() { yield return StartCoroutine(HandleAnimation("TaleAttack", false, bossSpeed, false)); }
-        IEnumerator DiagonalAvoidance() { yield return StartCoroutine(HandleAnimation("DiagonalAvoidance", false, bossSpeed, false)); }
-        IEnumerator DiagonalTackle() { yield return StartCoroutine(HandleAnimation("DiagonalTackle", false, bossSpeed, false)); }
-        IEnumerator FireCry2() { yield return StartCoroutine(HandleAnimation("FireCry2", false, bossSpeed, false)); }
-        IEnumerator FireBreath2() { yield return StartCoroutine(HandleAnimation("FireBreath2", false, bossSpeed, false)); }
-        IEnumerator Fly2() { yield return StartCoroutine(HandleAnimation("Fly2", false, bossSpeed, false)); }
-        IEnumerator Flying2() { yield return StartCoroutine(HandleAnimation("Flying2", true, bossSpeed, true)); }
-        IEnumerator Fall2() { yield return StartCoroutine(HandleAnimation("Fall2", false, bossSpeed, false)); }
-        IEnumerator FanShapedFireBreath2() { yield return StartCoroutine(HandleAnimation("FanShapedFireBreath2", false, bossSpeed, false)); }
-        IEnumerator LegSweepAttack2() { yield return StartCoroutine(HandleAnimation("LegSweepAttack2", false, bossSpeed, false)); }
-        IEnumerator LegFoundAttack2() { yield return StartCoroutine(HandleAnimation("LegFoundAttack2", false, bossSpeed, false)); }
-        IEnumerator DiagonalAvoidance2() { yield return StartCoroutine(HandleAnimation("DiagonalAvoidance2", false, bossSpeed, false)); }
-        IEnumerator DiagonalTackle2() { yield return StartCoroutine(HandleAnimation("DiagonalTackle2", false, bossSpeed, false)); }
-        IEnumerator Death() { yield return StartCoroutine(HandleAnimation("Death", false, bossSpeed, false)); }
+        //IEnumerator Move() { yield return StartCoroutine(HandleAnimation("Move")); }
+        IEnumerator TurnLeft() { yield return StartCoroutine(HandleAnimation("TurnLeft")); }
+        IEnumerator TurnRight() { yield return StartCoroutine(HandleAnimation("TurnRight")); }
+        //IEnumerator Idle() { yield return StartCoroutine(HandleAnimation("Idle")); }
+        IEnumerator Cry() { yield return StartCoroutine(HandleAnimation("Cry")); }
+        IEnumerator LegSweepAttack() { yield return StartCoroutine(HandleAnimation("LegSweepAttack")); }
+        IEnumerator LegFoundAttack() { yield return StartCoroutine(HandleAnimation("LegFoundAttack")); }
+        IEnumerator TaleAttack() { yield return StartCoroutine(HandleAnimation("TaleAttack")); }
+        IEnumerator DiagonalAvoidance() { yield return StartCoroutine(HandleAnimation("DiagonalAvoidance")); }
+        //IEnumerator DiagonalTackle() { yield return StartCoroutine(HandleAnimation("DiagonalTackle")); }
+        IEnumerator FireCry2() { yield return StartCoroutine(HandleAnimation("FireCry2")); }
+        IEnumerator FireBreath2() { yield return StartCoroutine(HandleAnimation("FireBreath2")); }
+        IEnumerator Fly2() { yield return StartCoroutine(HandleAnimation("Fly2")); }
+        //IEnumerator Flying2() { yield return StartCoroutine(HandleAnimation("Flying2")); }
+        IEnumerator Fall2() { yield return StartCoroutine(HandleAnimation("Fall2")); }
+        IEnumerator FanShapedFireBreath2() { yield return StartCoroutine(HandleAnimation("FanShapedFireBreath2")); }
+        IEnumerator LegSweepAttack2() { yield return StartCoroutine(HandleAnimation("LegSweepAttack2")); }
+        IEnumerator LegFoundAttack2() { yield return StartCoroutine(HandleAnimation("LegFoundAttack2")); }
+        IEnumerator DiagonalAvoidance2() { yield return StartCoroutine(HandleAnimation("DiagonalAvoidance2")); }
+        //IEnumerator DiagonalTackle2() { yield return StartCoroutine(HandleAnimation("DiagonalTackle2")); }
+        IEnumerator Death() { yield return StartCoroutine(HandleAnimation("Death")); }
+
     }
 }
