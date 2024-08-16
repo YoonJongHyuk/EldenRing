@@ -1,5 +1,7 @@
+using KINEMATION.KAnimationCore.Runtime.Attributes;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.UI;
@@ -52,6 +54,9 @@ namespace yoon
         }
 
         public GameObject player;
+        public GameObject fireParticle;
+
+        ParticleSystem particleSystem;
 
         BossPattern bossPattern = BossPattern.Idle;
         BossPhase bossPhase = BossPhase.Phase1;
@@ -59,6 +64,8 @@ namespace yoon
         Animator anim;
 
         NavMeshAgent navMeshAgent;
+
+        Vector3 bossYRot;
 
         int bossAttackPower;
 
@@ -73,6 +80,7 @@ namespace yoon
 
         float bossSpeed = 0.0f;
         float distance;
+        float bossHPHalf;
 
         public bool fristPlayerCheck = false;
         private bool BattleStartTrue = false;
@@ -81,6 +89,8 @@ namespace yoon
         public bool canPlay = false;
         bool isFlyTrue = false;
         bool isNearTrue = true;
+        bool onePaseStart = true;
+        bool twoPaseStart = false;
 
         public int patternCount;
 
@@ -88,10 +98,11 @@ namespace yoon
          패턴 설명
         0 = Idle 상태
         1 = 이동, 보통은 플레이어 접근
-        2 = 근접 공격(LegSweepAttack,LegFoundAttack,TaleAttack)
-        3 = 회피 후 몸통 박치기(DiagonalAvoidance)
-        4 = Cry 후 1번으로 변경
-        5 = 플레이어와의 거리 체크
+        2 = 근접 공격(LegSweepAttack,LegFoundAttack,TaleAttack) / 회피 후 몸통 박치기(DiagonalAvoidance)
+        
+        2 페이즈
+
+        3 = 
         */
 
 
@@ -107,39 +118,81 @@ namespace yoon
             MoveTowardsPlayer();
 
 
-
-            if(patternCount == 0)
+            if (patternCount == 0)
             {
                 ChangePattern(BossPattern.Idle);
             }
-            else if(patternCount == 1)
+            else if (patternCount == 1)
             {
                 PlayerChase();
             }
-            else if(patternCount == 2)
+
+            if (bossHP > bossHPHalf)
             {
-                RandomAttack();
+                if (patternCount == 2)
+                {
+                    if(OnePaseAttack < 3)
+                    {
+                        patternCount = 99;
+                        RandomAttack();
+                    }
+                    else if(OnePaseAttack >= 3)
+                    {
+                        OnePaseAttack = 0;
+                        patternCount = 99;
+                        ChangePattern(BossPattern.DiagonalAvoidance);
+                    }
+                }
             }
-            else if (patternCount == 3)
+            else if(bossHP <= bossHPHalf)
             {
-                return;
+                
+                print("체력 절반");
+                if (patternCount == 3 && !twoPaseStart)
+                {
+                    print("패턴3");
+                    twoPaseStart = true;
+                    navMeshAgent.ResetPath();
+                    ChangePattern(BossPattern.FireCry2);
+                }
+                else if(patternCount == 4)
+                {
+                    
+                }
             }
-            else if (patternCount == 4)
+            else if(bossHP <= 0)
             {
-                ChangePattern(BossPattern.Cry);
+                bossHP = 0;
+                ChangePattern(BossPattern.Death);
             }
-            else if(patternCount == 5)
+            
+            
+
+            if (onePaseStart && bossHP <= bossHPHalf)
             {
-                DistanceCheck();
+                onePaseStart = false;
+                patternCount = 3;
             }
+
+
+            if (patternCount == 99)
+            {
+                // 패턴 딜레이
+            }
+
+
 
 
             #region 버튼 테스트
             if (Input.GetKeyDown(KeyCode.H))
             {
-                ChangePattern(BossPattern.FireCry2);
+                ChangePattern(BossPattern.FireBreath2);
             }
-            
+
+            if (Input.GetKeyDown(KeyCode.J))
+            {
+                ChangePattern(BossPattern.FanShapedFireBreath2);
+            }
 
 
             if (Input.GetKeyDown(KeyCode.R))
@@ -157,7 +210,9 @@ namespace yoon
 
         void Setting()
         {
+            particleSystem = fireParticle.GetComponent<ParticleSystem>();
             bossHP = bossMaxHP;
+            bossHPHalf = bossMaxHP / 2;
             navMeshAgent = GetComponent<NavMeshAgent>();
             player = GameObject.FindGameObjectWithTag("Player");
             anim = GetComponent<Animator>();
@@ -179,6 +234,22 @@ namespace yoon
             patternCount = 1;
         }
 
+
+        void OnePaseAttackAfter()
+        {
+            patternCount = 1;
+        }
+
+        void BreathStart()
+        {
+            fireParticle.SetActive(true);
+        }
+
+        void BreathEnd()
+        {
+            fireParticle.SetActive(false);
+        }
+
         void MoveTowardsPlayer()
         {
             Vector3 currentVelocity = navMeshAgent.velocity;
@@ -190,33 +261,46 @@ namespace yoon
         void PlayerChase()
         {
             navMeshAgent.SetDestination(player.transform.position);
-            distance = Vector3.Distance(transform.position, player.transform.position);
-            if (distance <= 5)
+            
+
+            Vector3 dir = new Vector3(transform.position.x, transform.position.y + 1, transform.position.z);
+            Ray ray = new Ray(transform.position, transform.forward);
+            RaycastHit hitInfo;
+
+            
+            if (Physics.Raycast(ray, out hitInfo, 5, (1 << 11)))
             {
                 navMeshAgent.ResetPath();
-                patternCount++;
-            }
-        }
-
-        void DistanceCheck()
-        {
-            distance = Vector3.Distance(transform.position, player.transform.position);
-            TurnToPlayer();
-            if (distance > 5)
-            {
-                patternCount = 1;
+                if (onePaseStart)
+                {
+                    patternCount = 2;
+                }
+                else if (twoPaseStart)
+                {
+                    patternCount = 4;
+                }
             }
             else
             {
-                patternCount = 2;
+                TurnToPlayer();
             }
         }
 
+        float rotationSpeed = 2.0f;
 
         void TurnToPlayer()
         {
-            transform.LookAt(player.transform.position);
+            // 목표 회전 방향 계산
+            Vector3 direction = player.transform.position - transform.position;
+            direction.y = 0; // y축 회전을 무시하여 보스가 수평면에서만 회전하도록 함
+            Quaternion targetRotation = Quaternion.LookRotation(direction);
+
+            // 현재 회전에서 목표 회전으로 부드럽게 회전
+            float step = rotationSpeed * Time.deltaTime; // 회전 속도 조절
+            transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, step);
         }
+
+        int OnePaseAttack = 0;
 
         // 1페이즈 근접공격
         void RandomAttack()
@@ -234,22 +318,8 @@ namespace yoon
                     ChangePattern(BossPattern.TaleAttack);
                     break;
             }
-            patternCount = 5;
-        }
 
-        void RandomPattern()
-        {
-            int patternNum;
-            if (bossPhase == BossPhase.Phase1)
-            {
-                patternNum = UnityEngine.Random.Range((int)BossPattern.Cry, (int)BossPattern.DiagonalTackle + 1);
-            }
-            else
-            {
-                patternNum = UnityEngine.Random.Range((int)BossPattern.FireCry2, (int)BossPattern.DiagonalTackle2 + 1);
-            }
-
-            ChangePattern((BossPattern)patternNum);
+            OnePaseAttack++;
         }
 
         public void ChangePattern(BossPattern newPattern)
@@ -263,7 +333,6 @@ namespace yoon
             {
                 yield return null;
             }
-
             StopCoroutine(bossPattern.ToString());
             bossPattern = newPattern;
             StartCoroutine(HandleAnimation(bossPattern.ToString()));
