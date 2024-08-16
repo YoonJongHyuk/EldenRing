@@ -165,6 +165,7 @@ public class PlayerContorler : MonoBehaviour
         }
         if(!isMove)
         {
+            
             Move();
             Jump();
         }
@@ -364,7 +365,7 @@ public class PlayerContorler : MonoBehaviour
                 staminaValue(staminaDrainRateDodge);
 
                 // 애니메이션 실행
-
+                moveVec = Vector3.zero;
                 animator.SetTrigger("isDodge"); // 구르기 애니메이션 설정
                 isDodge = true; // 구르기 상태 설정
                 
@@ -373,7 +374,7 @@ public class PlayerContorler : MonoBehaviour
             {
                 // 스태미나가 부족하면 구르기 실행 안함
                 isDodge = false;
-                
+               // moveVec = Vector3.zero; 제로말고 기본값으로 돌려야 함
             }
         }
 
@@ -427,8 +428,8 @@ public class PlayerContorler : MonoBehaviour
         {
             if(currentStamina >= staminaDrainRatePowerAttack)
             {
-                staminaValue(staminaDrainRateAttack);
 
+                staminaValue(staminaDrainRateAttack);
                 animator.SetTrigger("PowerAttack");
                 isMove =false;
             }
