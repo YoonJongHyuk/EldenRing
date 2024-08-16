@@ -14,7 +14,7 @@ public class PlayerContorler : MonoBehaviour
     public float MoveSpeed; // 이동 속도
     float h, v; // 수평 및 수직 입력값
     bool isMove = true;
-    bool Run; // 달리기 여부
+    public bool Run; // 달리기 여부
     Vector3 moveVec; // 이동 벡터
     public Transform cameraTransform; // 카메라 Transform
 
@@ -23,7 +23,7 @@ public class PlayerContorler : MonoBehaviour
     Vector3 gravityPower; // 중력 값
 
     // 구르기 관련 변수들
-    bool isDodge; // 구르기 상태
+    public bool isDodge; // 구르기 상태
     Vector3 dodgeVec; // 구르기 벡터
     Transform pivot;
 
@@ -259,18 +259,23 @@ public class PlayerContorler : MonoBehaviour
         cameraRight.Normalize();
 
         // 이동 벡터 계산
-        moveVec = (cameraForward * v + cameraRight * h).normalized;
+        if (!isDodge)
+        {
+            moveVec = (cameraForward * v + cameraRight * h).normalized;
+
+        }
+        
 
 
         //이동 처리
-        if ((Run) && !isAttack)
+        if (Run && !isAttack && !isDodge)
         {
             Run = true;
             transform.position += moveVec * MoveSpeed * 2.0f * Time.deltaTime; // 달리기 속도로 이동
             animator.SetBool("isRun", true); // 달리기 애니메이션 설정
             
         }
-        else
+        else if (!Run && !isAttack && !isDodge)
         {
             Run = false;
             isMove = true;
@@ -290,6 +295,13 @@ public class PlayerContorler : MonoBehaviour
         Run = false;
         
 
+    }
+
+    void DodgeAfter()
+    {
+        isDodge = false;
+        Run = true;
+        
     }
 
     // 회전 처리 (아직 마우스 입력 미구현)
@@ -352,29 +364,30 @@ public class PlayerContorler : MonoBehaviour
 
     void Dodge()
     {
-        if (Input.GetKeyDown(KeyCode.F) && !isJump && !Backstep)
+        if (Input.GetKeyDown(KeyCode.F) && !isJump && !Backstep && !isDodge)
         {
             // 스태미나가 충분한지 체크
             if (currentStamina >= staminaDrainRateDodge)
             {
+                isDodge = true; // 구르기 상태 설정
                 // 스태미나가 충분하면 구르기 실행
-                Vector3 dodgeVec = new Vector3(h, 0, v).normalized;  // 구르기 벡터 설정
-                rb.AddForce(dodgeVec * MoveSpeed, ForceMode.VelocityChange);
+                //Vector3 dodgeVec = new Vector3(h, 0, v).normalized;  // 구르기 벡터 설정
+                //Vector3 dodgeVec = Vector3.zero;  // 구르기 벡터 설정
+                //Quaternion currentRotation = transform.rotation;
+                rb.AddForce(Vector3.forward * MoveSpeed * 5, ForceMode.VelocityChange);
 
                 // 스태미나 소비
                 staminaValue(staminaDrainRateDodge);
-
+                
                 // 애니메이션 실행
-                moveVec = Vector3.zero;
                 animator.SetTrigger("isDodge"); // 구르기 애니메이션 설정
-                isDodge = true; // 구르기 상태 설정
                 
             }
             else
             {
                 // 스태미나가 부족하면 구르기 실행 안함
                 isDodge = false;
-               // moveVec = Vector3.zero; 제로말고 기본값으로 돌려야 함
+              
             }
         }
 

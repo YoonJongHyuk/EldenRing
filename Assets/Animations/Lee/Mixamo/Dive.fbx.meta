@@ -57,8 +57,16 @@ ModelImporter:
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves: []
       events:
-      - time: 0.41453144
+      - time: 0
         functionName: aniMove
+        data: 
+        objectReferenceParameter: {fileID: 11500000, guid: c5cee7e2d46b8a34f9fd861fec099e7f,
+          type: 3}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.8926933
+        functionName: DodgeAfter
         data: 
         objectReferenceParameter: {fileID: 11500000, guid: c5cee7e2d46b8a34f9fd861fec099e7f,
           type: 3}
