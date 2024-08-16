@@ -1,4 +1,3 @@
-using KINEMATION.KAnimationCore.Runtime.Attributes;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
@@ -96,6 +95,7 @@ namespace yoon
         bool twoPaseStart = false;
         public bool isAttackTrue = false;
         public bool playerHit = false;
+        bool isDeadTrue = false;
 
         public int patternCount;
 
@@ -123,6 +123,15 @@ namespace yoon
             MoveTowardsPlayer();
 
 
+            if (bossHP <= 0 && !isDeadTrue)
+            {
+                isDeadTrue = true;
+                bossHP = 0;
+                patternCount = 99;
+                print("주금");
+                ChangePattern(BossPattern.Death);
+            }
+
             if (patternCount == 0)
             {
                 ChangePattern(BossPattern.Idle);
@@ -132,7 +141,7 @@ namespace yoon
                 PlayerChase();
             }
 
-            if (bossHP > bossHPHalf)
+            if (bossHP > bossHPHalf && !isDeadTrue)
             {
                 if (patternCount == 2)
                 {
@@ -149,7 +158,7 @@ namespace yoon
                     }
                 }
             }
-            else if(bossHP <= bossHPHalf)
+            else if(bossHP <= bossHPHalf && !isDeadTrue)
             {
                 
                 print("체력 절반");
@@ -162,13 +171,18 @@ namespace yoon
                 }
                 else if(patternCount == 4)
                 {
-                    
+                    if (OnePaseAttack < 3)
+                    {
+                        patternCount = 99;
+                        RandomAttack();
+                    }
+                    else if (OnePaseAttack >= 3)
+                    {
+                        OnePaseAttack = 0;
+                        patternCount = 99;
+                        ChangePattern(BossPattern.FireBreath2);
+                    }
                 }
-            }
-            else if(bossHP <= 0)
-            {
-                bossHP = 0;
-                ChangePattern(BossPattern.Death);
             }
             
             
@@ -200,7 +214,7 @@ namespace yoon
             }
 
 
-            if (Input.GetKeyDown(KeyCode.R))
+            if (Input.GetKeyDown(KeyCode.E))
             {
                 ChangePattern(BossPattern.Fly2);
             }
@@ -233,6 +247,11 @@ namespace yoon
             }
         }
 
+        void BreathBefore()
+        {
+
+        }
+
         void CryAfter()
         {
             patternCount = 1;
@@ -240,6 +259,11 @@ namespace yoon
 
 
         void OnePaseAttackAfter()
+        {
+            patternCount = 1;
+        }
+
+        void TowPaseAttackAfter()
         {
             patternCount = 1;
         }
@@ -256,11 +280,13 @@ namespace yoon
 
         void BreathStart()
         {
+            isAttackTrue = true;
             fireParticle.SetActive(true);
         }
 
         void BreathEnd()
         {
+            isAttackTrue = false;
             fireParticle.SetActive(false);
         }
 
@@ -334,6 +360,8 @@ namespace yoon
             }
 
             OnePaseAttack++;
+            
+            
         }
 
         public void ChangePattern(BossPattern newPattern)

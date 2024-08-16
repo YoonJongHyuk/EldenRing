@@ -180,7 +180,7 @@ public class PlayerContorler : MonoBehaviour
             playerHit = false;
             animator.SetTrigger("Hit");
         }
-        print(currentStamina);
+        //print(currentStamina);
     }
 
     void PlayerHitAfter()
