@@ -1395,11 +1395,7 @@ PrefabInstance:
       objectReference: {fileID: 9100000, guid: 8a502a34575bf5146b17633e15f05a41, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects:
-    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 97ada40f57d401540b8eafeeba1f0e9c,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1787345330}
+    m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 97ada40f57d401540b8eafeeba1f0e9c, type: 3}
 --- !u!1001 &185696172
@@ -1574,11 +1570,7 @@ PrefabInstance:
       objectReference: {fileID: 9100000, guid: f5505358be9325f4a8edf1aa5355c69d, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects:
-    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 97ada40f57d401540b8eafeeba1f0e9c,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1246801940}
+    m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 97ada40f57d401540b8eafeeba1f0e9c, type: 3}
 --- !u!1 &227990179
@@ -6038,11 +6030,7 @@ PrefabInstance:
       objectReference: {fileID: 9100000, guid: 570051fcaacf4c44385ceed06b5fe9ce, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects:
-    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 97ada40f57d401540b8eafeeba1f0e9c,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 2129147618}
+    m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 97ada40f57d401540b8eafeeba1f0e9c, type: 3}
 --- !u!4 &816419327 stripped
@@ -8668,12 +8656,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 459f79a004eb51144840e79b6950c697, type: 3}
---- !u!4 &1140256964 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: a095f798aba8f2946b3a23de742b2fb8,
-    type: 3}
-  m_PrefabInstance: {fileID: 1715531627039248201}
-  m_PrefabAsset: {fileID: 0}
 --- !u!4 &1154508619 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6048376750277521002, guid: 459f79a004eb51144840e79b6950c697,
@@ -9686,12 +9668,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1226318153}
   m_CullTransparentMesh: 1
---- !u!4 &1246801940 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: a095f798aba8f2946b3a23de742b2fb8,
-    type: 3}
-  m_PrefabInstance: {fileID: 539388083}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1248194057
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -13695,12 +13671,6 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 1182446525}
   m_PrefabAsset: {fileID: 0}
---- !u!4 &1787345330 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: a095f798aba8f2946b3a23de742b2fb8,
-    type: 3}
-  m_PrefabInstance: {fileID: 887440602}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1796852579
 GameObject:
   m_ObjectHideFlags: 0
@@ -15584,12 +15554,6 @@ Transform:
   - {fileID: 324511296}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!4 &2129147618 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: a095f798aba8f2946b3a23de742b2fb8,
-    type: 3}
-  m_PrefabInstance: {fileID: 45487027}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &2132880653
 GameObject:
   m_ObjectHideFlags: 0
@@ -16149,11 +16113,7 @@ PrefabInstance:
       objectReference: {fileID: 9100000, guid: 043765f8a01c47a4c800f8e312d42e07, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects:
-    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 97ada40f57d401540b8eafeeba1f0e9c,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1140256964}
+    m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 97ada40f57d401540b8eafeeba1f0e9c, type: 3}
 --- !u!1660057539 &9223372036854775807
@@ -16241,3 +16201,7 @@ SceneRoots:
   - {fileID: 1248194057}
   - {fileID: 55280500}
   - {fileID: 1093544133}
+  - {fileID: 1715531627039248201}
+  - {fileID: 887440602}
+  - {fileID: 45487027}
+  - {fileID: 539388083}
