@@ -79,3 +79,5 @@ crashlytics-build.properties
 /[Aa]ssets/[Rr]esources/[Ll]ee.meta
 /[Pp]ackages/[Cc]om.singularitygroup.hotreload/*
 /[Pp]ackages/[Cc]om.singularitygroup.hotreload.meta
+/[Aa]ssets/[Tt]errainDemoScene_URP/*
+/[Aa]ssets/[Tt]errainDemoScene_URP.meta
