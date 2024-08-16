@@ -418,30 +418,25 @@ public class FinalMob : MonoBehaviour
     void WayPointMove()
     {
         moveSpeed = currentSpeed;
-        
+
         navMeshAgent.isStopped = true; // NavMeshAgent 비활성화
         if (points.Length == 0) return;
 
-        Vector3 direction = points[nextIndex].position - transform.position;
-        Quaternion rot = Quaternion.LookRotation(direction);
-        float adjustedDamping = damping * (moveSpeed * rotationSpeedMultiplier); // 이동 속도에 따른 회전 속도 조정
-        transform.rotation = Quaternion.Slerp(transform.rotation, rot, Time.deltaTime * adjustedDamping);
+
+        // 현재 위치에서 목표 웨이포인트의 y값만 고려한 LookAt을 설정합니다.
+        Vector3 lookDirection = new Vector3(points[nextIndex].position.x, transform.position.y, points[nextIndex].position.z);
+        transform.LookAt(lookDirection);
 
         transform.position += transform.forward * moveSpeed * Time.deltaTime;
 
         // 다음 웨이포인트로 이동할 조건 확인
-        if (Vector3.Distance(transform.position, points[nextIndex].position) < 0.1f)
+        if (Vector3.Distance(transform.position, points[nextIndex].position) < 1f)
         {
             nextIndex = (++nextIndex >= points.Length) ? 0 : nextIndex;
-            wayPointNum++;
-            if (wayPointNum % 3 == 0)
+            if (wayPointNum >= points.Length)
             {
                 wayPointNum = 0;
             }
-        }
-        if (!playerHideTrue)
-        {
-
         }
     }
     #endregion

@@ -56,7 +56,10 @@ namespace yoon
         public GameObject player;
         public GameObject fireParticle;
 
-        ParticleSystem particleSystem;
+        public BoxCollider tailBox;
+        public BoxCollider legBox;
+        public SphereCollider bossBodyBox;
+
 
         BossPattern bossPattern = BossPattern.Idle;
         BossPhase bossPhase = BossPhase.Phase1;
@@ -91,6 +94,8 @@ namespace yoon
         bool isNearTrue = true;
         bool onePaseStart = true;
         bool twoPaseStart = false;
+        public bool isAttackTrue = false;
+        public bool playerHit = false;
 
         public int patternCount;
 
@@ -210,7 +215,6 @@ namespace yoon
 
         void Setting()
         {
-            particleSystem = fireParticle.GetComponent<ParticleSystem>();
             bossHP = bossMaxHP;
             bossHPHalf = bossMaxHP / 2;
             navMeshAgent = GetComponent<NavMeshAgent>();
@@ -238,6 +242,16 @@ namespace yoon
         void OnePaseAttackAfter()
         {
             patternCount = 1;
+        }
+
+        void HitStart()
+        {
+            isAttackTrue = true;
+        }
+
+        void HitEnd()
+        {
+            isAttackTrue = false;
         }
 
         void BreathStart()
