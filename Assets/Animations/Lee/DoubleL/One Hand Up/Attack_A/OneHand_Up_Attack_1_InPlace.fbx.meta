@@ -57,6 +57,14 @@ ModelImporter:
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves: []
       events:
+      - time: 0
+        functionName: WeakAttack
+        data: 
+        objectReferenceParameter: {fileID: 11500000, guid: c5cee7e2d46b8a34f9fd861fec099e7f,
+          type: 3}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
       - time: 0.012788347
         functionName: StartAttack
         data: 

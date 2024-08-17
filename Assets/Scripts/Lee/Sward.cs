@@ -18,7 +18,7 @@ public class Sward : MonoBehaviour
 
     private void Update()
     {
-        PowerAttack();
+        //PowerAttack();
     }
 
 
