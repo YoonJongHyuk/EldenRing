@@ -6,14 +6,12 @@ using UnityEngine.UI;
 using Cinemachine;
 using UnityEngine.SceneManagement;
 using TMPro;
-using Unity.VisualScripting;
 
 public class PlayerContorler : MonoBehaviour
 {
     // 이동 관련 변수들
     public float MoveSpeed; // 이동 속도
     float h, v; // 수평 및 수직 입력값
-    bool isMove = true;
     public bool Run; // 달리기 여부
     Vector3 moveVec; // 이동 벡터
     public Transform cameraTransform; // 카메라 Transform
@@ -60,7 +58,7 @@ public class PlayerContorler : MonoBehaviour
     float AttackDelay; // 공격 지연 시간
     private List<Scorpion> scorps; // 충돌한 Monster 객체
     private List<Scorpion> hitMonster;
-    public bool isAttack;
+    public bool isAttack = false;
     public bool hit;
     public Sward sward;
     public bool playerHit = false;
@@ -91,6 +89,17 @@ public class PlayerContorler : MonoBehaviour
 
     bool attackStaminaUse1 = false;
     bool attackStaminaUse2 = true;
+
+    public float dashSpeed = 10f;        // 대쉬 속도
+    public float dashDuration = 0.2f;    // 대쉬 지속 시간
+    private bool isDashing = false;      // 대쉬 중인지 확인
+    private float dashTimeLeft;          // 남은 대쉬 시간
+
+    public float dashCooldown = 1f;      // 대쉬 쿨타임
+    private float dashCooldownTimer = 0f; // 남은 대쉬 쿨타임
+
+    public bool isInvincible = false; // 무적 상태 여부를 나타내는 변수
+
 
 
     //사망
@@ -158,7 +167,6 @@ public class PlayerContorler : MonoBehaviour
         {
             Move(); // 이동 처리
             Rotate(); // 회전 처리
-            Jump(); // 점프 처리
             Death();
             potion(); // 포션 사용 처리
             Stamina(); // 스테미나 처리 
@@ -168,10 +176,6 @@ public class PlayerContorler : MonoBehaviour
             Dodge(); // 구르기
             PowerAttack(); // 강공격
         }
-        if(!isMove)
-        {
-            Jump();
-        }
         
         HPBar(); // 체력바
         
@@ -180,6 +184,8 @@ public class PlayerContorler : MonoBehaviour
         SetRespawnPosition(); //리스폰 프리팹 상호작용
         if (playerHit && !isDead)
         {
+            if (isInvincible)
+                return;
             playerHit = false;
             animator.SetTrigger("Hit");
         }
@@ -195,7 +201,35 @@ public class PlayerContorler : MonoBehaviour
         }
     }
 
-    
+    // 무적 상태를 활성화하는 함수
+    public void ActivateInvincibility(float duration)
+    {
+        if (!isInvincible)
+        {
+            isInvincible = true;
+            StartCoroutine(InvincibilityCoroutine(duration));
+        }
+    }
+
+    // 무적 상태를 비활성화하는 함수
+    public void DeactivateInvincibility()
+    {
+        isInvincible = false;
+    }
+
+    // 무적 상태를 일정 시간 유지하기 위한 코루틴
+    private IEnumerator InvincibilityCoroutine(float duration)
+    {
+        yield return new WaitForSeconds(duration); // 지정된 시간 동안 대기
+        DeactivateInvincibility(); // 무적 상태 비활성화
+    }
+
+    void DodgeActivateInvincibility()
+    {
+        ActivateInvincibility(0.8f);
+    }
+
+
     void HPBar()
     {
         if (_nextHpBar == null) return; // nextHP 슬라이더가 할당되지 않았으면 리턴
@@ -220,10 +254,12 @@ public class PlayerContorler : MonoBehaviour
 
     void Stamina()
     {
-        // 스태미나 회복 처리 // 회복이 안됨 -- 해결
-        currentStamina = Mathf.Clamp(currentStamina + staminaRecoveryRate * Time.deltaTime, 0, maxStamina);
-        // 현재 소비할려는 스테미너 보다 사용량이 적을경우
-    
+        if(staminaUseTrue)
+        {
+            // 스태미나 회복 처리 // 회복이 안됨 -- 해결
+            currentStamina = Mathf.Clamp(currentStamina + staminaRecoveryRate * Time.deltaTime, 0, maxStamina);
+            // 현재 소비할려는 스테미너 보다 사용량이 적을경우
+        }
     }
 
     void staminaValue(float value, string animName)
@@ -232,12 +268,13 @@ public class PlayerContorler : MonoBehaviour
         // 스태미나가 소모량보다 적으면 애니메이션 block
         if (currentStamina < value)
         {
+            print($"{animName} 를 실행할 {value} 만큼의 스태미나 부족");
             return;
         }
         // 스태미나가 소모량보다 많으면 애니메이션 non-lock
         else if (currentStamina >= value)
         {
-            staminaUseTrue = true;
+            staminaUseTrue = false;
             animator.SetTrigger(animName);
             currentStamina = currentStamina - value;
         }
@@ -266,30 +303,25 @@ public class PlayerContorler : MonoBehaviour
         cameraRight.Normalize();
 
         // 이동 벡터 계산
-        if (!isDodge)
-        {
-            moveVec = (cameraForward * v + cameraRight * h).normalized;
+        moveVec = (cameraForward * v + cameraRight * h).normalized;
 
-        }
-        
 
 
         //이동 처리
-        if (Run && !isAttack && !isDodge)
+        if (Run && !isDodge)
         {
             Run = true;
             transform.position += moveVec * MoveSpeed * 2.0f * Time.deltaTime; // 달리기 속도로 이동
             animator.SetBool("isRun", true); // 달리기 애니메이션 설정
             
         }
-        else if (!Run && !isAttack && !isDodge)
+        else if (!Run && !isDodge)
         {
             Run = false;
-            isMove = true;
             transform.position += moveVec * MoveSpeed * Time.deltaTime; // 걷기 속도로 이동
             if (isAttack)
             {
-                MoveSpeed = 0;
+                MoveSpeed = 1.2f;
                 transform.position += moveVec * MoveSpeed * Time.deltaTime; // 걷기 속도로 이동
                 return;
             }
@@ -304,11 +336,13 @@ public class PlayerContorler : MonoBehaviour
 
     }
 
+
     void DodgeAfter()
     {
-        isDodge = false;
+        isDashing = false;   // 대쉬 상태 초기화
+        isDodge = false;     // 구르기 상태 초기화
         Run = true;
-        staminaUseTrue = false;
+        staminaUseTrue = true;
     }
 
     // 회전 처리 (아직 마우스 입력 미구현)
@@ -331,9 +365,7 @@ public class PlayerContorler : MonoBehaviour
             rb.AddForce(Vector3.up * 5, ForceMode.Impulse); // 위로 힘을 가해 점프
             animator.SetTrigger("isJump"); // 점프 애니메이션 설정
             isJump = true; // 점프 상태 설정
-            isMove = false;
         }
-        isMove = true;
         isJump = false;
     }
 
@@ -362,28 +394,59 @@ public class PlayerContorler : MonoBehaviour
 
     void Dodge()
     {
-        if (staminaUseTrue)
-            return;
-        if (Input.GetKeyDown(KeyCode.F) && !isJump && !Backstep && !isDodge)
+        if (Input.GetKeyDown(KeyCode.F) && !isJump && !Backstep && !isDodge && dashCooldownTimer <= 0 && currentStamina > staminaDrainRateDodge)
         {
-            isDodge = true; // 구르기 상태 설정
-
-            // 이동 방향이 없을 때는 현재 캐릭터의 forward 방향으로 구르기
-            Vector3 dodgeDirection = moveVec != Vector3.zero ? moveVec : transform.forward;
-
-            // 구르기 벡터를 이동 방향으로 설정하고, 힘을 가해 이동
-            rb.AddForce(dodgeDirection * MoveSpeed * 5, ForceMode.VelocityChange);
-
-            // 스태미나 소비
+            print("대쉬 시작");
             staminaValue(staminaDrainRateDodge, "isDodge");
 
+            if (!staminaUseTrue)
+            {
+                isDodge = true;
+                isDashing = true;
+                dashTimeLeft = dashDuration;
+                dashCooldownTimer = dashCooldown;
+
+                // 대쉬 애니메이션 시작 (필요시 추가)
+                animator.SetTrigger("Dash");
+            }
         }
 
+        // 대쉬 쿨타임 처리
+        if (dashCooldownTimer > 0)
+        {
+            dashCooldownTimer -= Time.deltaTime;
+        }
+
+        // 대쉬 중 이동 처리
+        if (isDashing)
+        {
+            DashMovement();
+        }
+    }
+
+    void DashMovement()
+    {
+        if (dashTimeLeft > 0)
+        {
+            dashTimeLeft -= Time.deltaTime;
+
+            // 대쉬 방향 설정 (현재 이동 방향)
+            Vector3 dashDirection = moveVec != Vector3.zero ? moveVec : transform.forward;
+
+            // 캐릭터를 대쉬 방향으로 이동
+            transform.position += dashDirection * dashSpeed * Time.deltaTime;
+        }
+        else
+        {
+            isDashing = false; // 대쉬 종료
+            isDodge = false;   // 구르기 종료
+            DodgeAfter();      // 대쉬 후 처리
+        }
     }
 
     public void GetDamage(int damage)
     {
-        if (currentHP > 0)
+        if (currentHP > 0 && !isInvincible)
         {
             currentHP -= damage;
             _hpBar.value = currentHP;
@@ -396,59 +459,49 @@ public class PlayerContorler : MonoBehaviour
     // 공격 처리
     void Attack()
     {
-        if (equipWeapon == null)
-            return; // 무기가 없다면 공격 중지
-
-        if (Input.GetButtonDown("Fire1"))
+        if (Input.GetButtonDown("Fire1") && !isAttack && currentStamina > staminaDrainRateDodge)
         {
+            isAttack = true;
             staminaValue(staminaDrainRateAttack, "isAttack");
-            isMove = false;
-
         }
     }
 
-
+    // 강공격 처리
     void PowerAttack()
     {
-        if (equipWeapon == null)
+        if (Input.GetButtonDown("PowerAttack") && !isAttack && currentStamina > staminaDrainRatePowerAttack)
         {
-            return;
-        }
-        if (staminaUseTrue)
-            return;
-        if (Input.GetButtonDown("PowerAttack"))
-        {
-            staminaValue(staminaDrainRateAttack, "PowerAttack");
-            isMove = false;
+            isAttack = true;
+            staminaValue(staminaDrainRatePowerAttack, "PowerAttack");
         }
     }
+
+
     #region 애니메이션 이벤트 모음
     void StartJump()
     {
         isJump = true;
-        isMove = false;
     }
     void EndJump()
     {
         isJump = false;
-        isMove = true;
     }
 
     void aniMove()
     {
-        isMove = false;
+        MoveSpeed = 3;
         Run = false;
     }
    
     void StaminaUseStart()
     {
-        staminaUseTrue = false;
+        staminaUseTrue = true;
+        isAttack = false;
     }
     
 
     void StartAttack()
     {
-        isAttack = true;
         hit = true;
         print("공격시작. isAttack의 값은" + isAttack);
         
@@ -456,15 +509,14 @@ public class PlayerContorler : MonoBehaviour
 
     void EndAttack()
     {
-        isAttack = false;
         hit = false;
-        staminaUseTrue = false;
         print("공격끝. isAttack의 값은" + isAttack);
     }
 
     void WeakAttack()
     {
         sward.attackPower = 30;
+        MoveSpeed = 0;
     }
 
     void StrongAttack()

@@ -1,8 +1,5 @@
 using System.Collections;
-using System.Collections.Generic;
 using TMPro;
-using Unity.VisualScripting;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.UI;
@@ -58,6 +55,7 @@ namespace yoon
 
         public GameObject player;
         public GameObject fireParticle;
+        public GameObject BossUI;
 
         PlayerContorler playerScript;
 
@@ -147,6 +145,7 @@ namespace yoon
             bossDeathUI.SetActive(true);
             yield return new WaitForSeconds(5);
             bossDeathUI.SetActive(false);
+            BossUI.SetActive(false);
         }
 
 
@@ -183,104 +182,112 @@ namespace yoon
                 ChangePattern(BossPattern.Death);
                 StartCoroutine(ShowDeathUI());
             }
-
-            if (patternCount == 0)
+            else
             {
-                ChangePattern(BossPattern.Idle);
-            }
-            else if (patternCount == 1)
-            {
-                PlayerChase();
-            }
-
-            if (bossHP > bossHPHalf && !isDeadTrue)
-            {
-                if (patternCount == 2)
+                if (patternCount == 0)
                 {
-                    if(OnePaseAttack < 3)
+                    ChangePattern(BossPattern.Idle);
+                }
+                else if (patternCount == 1)
+                {
+                    PlayerChase();
+                }
+
+                if (bossHP > bossHPHalf && !isDeadTrue)
+                {
+                    if (patternCount == 2)
                     {
-                        patternCount = 99;
-                        RandomAttack();
-                    }
-                    else if(OnePaseAttack >= 3)
-                    {
-                        OnePaseAttack = 0;
-                        patternCount = 99;
-                        ChangePattern(BossPattern.DiagonalAvoidance);
+                        if (OnePaseAttack < 3)
+                        {
+                            patternCount = 99;
+                            RandomAttack();
+                        }
+                        else if (OnePaseAttack >= 3)
+                        {
+                            OnePaseAttack = 0;
+                            patternCount = 99;
+                            ChangePattern(BossPattern.DiagonalAvoidance);
+                        }
                     }
                 }
-            }
-            else if(bossHP <= bossHPHalf && !isDeadTrue)
-            {
-                
-                print("체력 절반");
-                if (patternCount == 3 && !twoPaseStart)
+                else if (bossHP <= bossHPHalf && !isDeadTrue)
                 {
-                    print("패턴3");
-                    twoPaseStart = true;
-                    navMeshAgent.ResetPath();
-                    ChangePattern(BossPattern.FireCry2);
+
+                    print("체력 절반");
+                    if (patternCount == 3 && !twoPaseStart)
+                    {
+                        print("패턴3");
+                        twoPaseStart = true;
+                        navMeshAgent.ResetPath();
+                        ChangePattern(BossPattern.FireCry2);
+                    }
+                    else if (patternCount == 4)
+                    {
+                        if (OnePaseAttack < 3)
+                        {
+                            patternCount = 99;
+                            RandomAttack();
+                        }
+                        else if (OnePaseAttack >= 3)
+                        {
+                            OnePaseAttack = 0;
+                            patternCount = 99;
+                            ChangePattern(BossPattern.FireBreath2);
+                        }
+                    }
                 }
-                else if(patternCount == 4)
+
+
+
+                if (onePaseStart && bossHP <= bossHPHalf)
                 {
-                    if (OnePaseAttack < 3)
-                    {
-                        patternCount = 99;
-                        RandomAttack();
-                    }
-                    else if (OnePaseAttack >= 3)
-                    {
-                        OnePaseAttack = 0;
-                        patternCount = 99;
-                        ChangePattern(BossPattern.FireBreath2);
-                    }
+                    onePaseStart = false;
+                    patternCount = 3;
                 }
+
+
+                if (patternCount == 99)
+                {
+                    // 패턴 딜레이
+                }
+
+
+
+
+                #region 버튼 테스트
+                //if (Input.GetKeyDown(KeyCode.H))
+                //{
+                //    ChangePattern(BossPattern.FireBreath2);
+                //}
+
+                //if (Input.GetKeyDown(KeyCode.J))
+                //{
+                //    ChangePattern(BossPattern.FanShapedFireBreath2);
+                //}
+
+
+                //if (Input.GetKeyDown(KeyCode.E))
+                //{
+                //    ChangePattern(BossPattern.Fly2);
+                //}
+                //if (Input.GetKeyDown(KeyCode.S))
+                //{
+                //    ChangePattern(BossPattern.Fall2);
+                //}
+                #endregion
             }
-            
-            
-
-            if (onePaseStart && bossHP <= bossHPHalf)
-            {
-                onePaseStart = false;
-                patternCount = 3;
-            }
 
 
-            if (patternCount == 99)
-            {
-                // 패턴 딜레이
-            }
-
-
-
-
-            #region 버튼 테스트
-            if (Input.GetKeyDown(KeyCode.H))
-            {
-                ChangePattern(BossPattern.FireBreath2);
-            }
-
-            if (Input.GetKeyDown(KeyCode.J))
-            {
-                ChangePattern(BossPattern.FanShapedFireBreath2);
-            }
-
-
-            if (Input.GetKeyDown(KeyCode.E))
-            {
-                ChangePattern(BossPattern.Fly2);
-            }
-            if (Input.GetKeyDown(KeyCode.S))
-            {
-                ChangePattern(BossPattern.Fall2);
-            }
-            #endregion
 
         }
 
 
         void Setting()
         {
+            if (BossUI == null)
+            {
+                Debug.LogError("BossUI가 할당되지 않았습니다. 인스펙터에서 확인하세요.");
+            }
             bossHP = bossMaxHP;
             bossHPHalf = bossMaxHP / 2;
             navMeshAgent = GetComponent<NavMeshAgent>();
@@ -295,6 +302,7 @@ namespace yoon
         {
             if (fristPlayerCheck)
             {
+                BossUI.SetActive(true);
                 ChangePattern(BossPattern.Cry);
                 fristPlayerCheck = false;
             }
@@ -332,11 +340,6 @@ namespace yoon
             yield return new WaitForSeconds(2);
             hpText.gameObject.SetActive(false);
             totalDamageTaken = 0;
-        }
-
-        void BreathBefore()
-        {
-
         }
 
         void CryAfter()

@@ -65,7 +65,7 @@ ModelImporter:
         floatParameter: 0
         intParameter: 0
         messageOptions: 0
-      - time: 0.012788347
+      - time: 0.19590524
         functionName: StartAttack
         data: 
         objectReferenceParameter: {fileID: 11500000, guid: c5cee7e2d46b8a34f9fd861fec099e7f,
@@ -73,7 +73,7 @@ ModelImporter:
         floatParameter: 0
         intParameter: 0
         messageOptions: 0
-      - time: 0.65315646
+      - time: 0.2935064
         functionName: EndAttack
         data: 
         objectReferenceParameter: {fileID: 11500000, guid: c5cee7e2d46b8a34f9fd861fec099e7f,
@@ -81,7 +81,15 @@ ModelImporter:
         floatParameter: 0
         intParameter: 0
         messageOptions: 0
-      - time: 0.969112
+      - time: 0.9467534
+        functionName: StaminaUseStart
+        data: 
+        objectReferenceParameter: {fileID: 11500000, guid: c5cee7e2d46b8a34f9fd861fec099e7f,
+          type: 3}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 1
         functionName: aniMove
         data: 
         objectReferenceParameter: {fileID: 11500000, guid: c5cee7e2d46b8a34f9fd861fec099e7f,
