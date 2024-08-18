@@ -128,13 +128,22 @@ public class PlayerContorler : MonoBehaviour
     //public GameObject potion1;
     //public GameObject Die;
 
+    //오디오
+    public AudioClip[] sounds = new AudioClip[5];
 
+    AudioSource PlayerSound;
 
     Scorpion Scorpion;
 
     // Start는 첫 프레임 업데이트 전에 호출됩니다.
     private void Awake()
     {
+        PlayerSound = gameObject.GetComponent<AudioSource>();
+
+        if (PlayerSound != null)
+        {
+            PlayerSound.volume = 0.1f;
+        }
         rb = GetComponent<Rigidbody>(); // 리지드바디 컴포넌트 가져오기
         animator = GetComponentInChildren<Animator>(); // 자식 객체에서 애니메이터 컴포넌트 가져오기
         hiding = true;
@@ -184,10 +193,8 @@ public class PlayerContorler : MonoBehaviour
         SetRespawnPosition(); //리스폰 프리팹 상호작용
         if (playerHit && !isDead)
         {
-            if (isInvincible)
-                return;
             playerHit = false;
-            animator.SetTrigger("Hit");
+            
         }
         //print(currentStamina);
     }
@@ -392,11 +399,17 @@ public class PlayerContorler : MonoBehaviour
         }
     }
 
+    void DodgeSound()
+    {
+        PlayerSound.clip = sounds[4];
+        PlayerSound.Play();
+    }
+
     void Dodge()
     {
         if (Input.GetKeyDown(KeyCode.F) && !isJump && !Backstep && !isDodge && dashCooldownTimer <= 0 && currentStamina > staminaDrainRateDodge)
         {
-            print("대쉬 시작");
+            print("대쉬 시작"); 
             staminaValue(staminaDrainRateDodge, "isDodge");
 
             if (!staminaUseTrue)
@@ -405,9 +418,6 @@ public class PlayerContorler : MonoBehaviour
                 isDashing = true;
                 dashTimeLeft = dashDuration;
                 dashCooldownTimer = dashCooldown;
-
-                // 대쉬 애니메이션 시작 (필요시 추가)
-                animator.SetTrigger("Dash");
             }
         }
 
@@ -448,6 +458,9 @@ public class PlayerContorler : MonoBehaviour
     {
         if (currentHP > 0 && !isInvincible)
         {
+            animator.SetTrigger("Hit");
+            PlayerSound.clip = sounds[2];
+            PlayerSound.Play();
             currentHP -= damage;
             _hpBar.value = currentHP;
             nextHP = currentHP;
@@ -504,7 +517,8 @@ public class PlayerContorler : MonoBehaviour
     {
         hit = true;
         print("공격시작. isAttack의 값은" + isAttack);
-        
+        PlayerSound.clip = sounds[0];
+        PlayerSound.Play();
     }
 
     void EndAttack()
@@ -538,8 +552,9 @@ public class PlayerContorler : MonoBehaviour
             _nextHpBar.value = currentHP;
             portionNum--;
             portionText.text = portionNum.ToString();
+            PlayerSound.clip = sounds[1];
+            PlayerSound.Play();
 
-            
             // 체력을 최대값으로 제한
             if (currentHP >= maxHP)
             {
@@ -623,6 +638,8 @@ public class PlayerContorler : MonoBehaviour
     {
         if (currentHP <= 0 && isDead == false)
         {
+            PlayerSound.clip = sounds[3];
+            PlayerSound.Play();
             isDead = true;
             print("죽음");
             DiePanel.SetActive(true);
@@ -634,7 +651,7 @@ public class PlayerContorler : MonoBehaviour
 
     IEnumerator IDeath()
     {
-        yield return new WaitForSeconds(3f);
+        yield return new WaitForSeconds(8f);
         SceneManager.LoadScene(1);
     }
 

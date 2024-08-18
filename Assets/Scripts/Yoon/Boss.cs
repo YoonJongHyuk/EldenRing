@@ -112,6 +112,11 @@ namespace yoon
 
         public int patternCount;
 
+        //오디오
+        public AudioClip[] sounds = new AudioClip[2];
+
+        AudioSource PlayerSound;
+
         /*
          패턴 설명
         0 = Idle 상태
@@ -131,6 +136,12 @@ namespace yoon
 
         private void Awake()
         {
+            PlayerSound = gameObject.GetComponent<AudioSource>();
+
+            if (PlayerSound != null)
+            {
+                PlayerSound.volume = 0.1f;
+            }
             bossHP = thisHP;
             nextHP = bossHP;
             _hpBar.maxValue = bossHP;
@@ -216,7 +227,6 @@ namespace yoon
                     print("체력 절반");
                     if (patternCount == 3 && !twoPaseStart)
                     {
-                        print("패턴3");
                         twoPaseStart = true;
                         navMeshAgent.ResetPath();
                         ChangePattern(BossPattern.FireCry2);
@@ -233,6 +243,7 @@ namespace yoon
                             OnePaseAttack = 0;
                             patternCount = 99;
                             ChangePattern(BossPattern.FireBreath2);
+                            
                         }
                     }
                 }
@@ -342,6 +353,12 @@ namespace yoon
             totalDamageTaken = 0;
         }
 
+        void CryStart()
+        {
+            PlayerSound.clip = sounds[0];
+            PlayerSound.Play();
+        }
+
         void CryAfter()
         {
             patternCount = 1;
@@ -372,6 +389,8 @@ namespace yoon
         {
             isAttackTrue = true;
             fireParticle.SetActive(true);
+            PlayerSound.clip = sounds[1];
+            PlayerSound.Play();
         }
 
         void BreathEnd()

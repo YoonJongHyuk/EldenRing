@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class EventManager : MonoBehaviour
 {
+    public AudioClip[] sounds;
+
+    AudioSource PlayerSound;
 
     private void Update()
     {
@@ -17,6 +20,9 @@ public class EventManager : MonoBehaviour
             Application.Quit();
         }
     }
+
+
+
 
     //void ReStartButton()
     //{

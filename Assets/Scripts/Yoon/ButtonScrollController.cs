@@ -12,7 +12,8 @@ public class ButtonScrollController : MonoBehaviour
     private float contentYMax = 90f;
     private float step = 30f;
 
-    void Start()
+
+    void Awake()
     {
         SelectButton(selectedIndex);
     }
@@ -59,6 +60,8 @@ public class ButtonScrollController : MonoBehaviour
             buttons[selectedIndex].onClick.Invoke();
         }
     }
+
+    
 
     void SelectButton(int index)
     {
