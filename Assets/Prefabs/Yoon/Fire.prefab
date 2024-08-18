@@ -19436,6 +19436,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   damageAmount: 10
+  boss: {fileID: 0}
 --- !u!1 &4688686091745595346
 GameObject:
   m_ObjectHideFlags: 0

@@ -3,7 +3,7 @@ using yoon;
 
 public class ParticleDamage : MonoBehaviour
 {
-    public int damageAmount = 10; // 플레이어에게 줄 데미지
+    public int damageAmount = 35; // 플레이어에게 줄 데미지
 
 
     public Boss boss;

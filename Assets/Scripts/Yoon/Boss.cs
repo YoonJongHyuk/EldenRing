@@ -1,6 +1,7 @@
-
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
+using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.AI;
@@ -53,12 +54,21 @@ namespace yoon
             Phase2
         }
 
+        public int thisHP;
+
         public GameObject player;
         public GameObject fireParticle;
+
+        PlayerContorler playerScript;
 
         public BoxCollider tailBox;
         public BoxCollider legBox;
         public SphereCollider bossBodyBox;
+        public TMP_Text hpText;
+
+        float currentTime = 0;
+
+        public GameObject bossDeathUI;
 
 
         BossPattern bossPattern = BossPattern.Idle;
@@ -74,6 +84,10 @@ namespace yoon
 
         public int bossHP;
         public int bossMaxHP;
+        int nextHP;
+        private int totalDamageTaken = 0; // 누적 데미지
+        private float lerpDuration = 1.5f; // 체력이 천천히 빠질 시간 (1.5초)
+        private float delayDuration = 1.5f; // 딜레이
 
         [SerializeField]
         private Slider _hpBar;
@@ -96,6 +110,7 @@ namespace yoon
         bool twoPaseStart = false;
         public bool isAttackTrue = false;
         public bool playerHit = false;
+        bool isDeadTrue = false;
 
         public int patternCount;
 
@@ -116,12 +131,58 @@ namespace yoon
             Setting();
         }
 
+        private void Awake()
+        {
+            bossHP = thisHP;
+            nextHP = bossHP;
+            _hpBar.maxValue = bossHP;
+            _hpBar.value = bossHP;
+            _nextHpBar.maxValue = bossHP; // nextHP 슬라이더 초기화
+            _nextHpBar.value = bossHP;
+        }
+
+        IEnumerator ShowDeathUI()
+        {
+            yield return new WaitForSeconds(7.4f);
+            bossDeathUI.SetActive(true);
+            yield return new WaitForSeconds(5);
+            bossDeathUI.SetActive(false);
+        }
+
+
         private void Update()
         {
             StartScene();
             LoopAnimationCheck();
             MoveTowardsPlayer();
 
+            if (_nextHpBar.value != nextHP)
+            {
+                currentTime += Time.deltaTime;
+
+                if (currentTime >= delayDuration)
+                {
+                    float t = (currentTime - delayDuration) / lerpDuration;
+                    _nextHpBar.value = Mathf.Lerp(_nextHpBar.value, nextHP, t);
+
+                    if (Mathf.Abs(_nextHpBar.value - nextHP) < 0.01f)
+                    {
+                        _nextHpBar.value = nextHP;
+                        currentTime = 0.0f;
+                    }
+                }
+            }
+
+
+            if (bossHP <= 0 && !isDeadTrue)
+            {
+                isDeadTrue = true;
+                bossHP = 0;
+                patternCount = 99;
+                print("주금");
+                ChangePattern(BossPattern.Death);
+                StartCoroutine(ShowDeathUI());
+            }
 
             if (patternCount == 0)
             {
@@ -132,7 +193,7 @@ namespace yoon
                 PlayerChase();
             }
 
-            if (bossHP > bossHPHalf)
+            if (bossHP > bossHPHalf && !isDeadTrue)
             {
                 if (patternCount == 2)
                 {
@@ -149,7 +210,7 @@ namespace yoon
                     }
                 }
             }
-            else if(bossHP <= bossHPHalf)
+            else if(bossHP <= bossHPHalf && !isDeadTrue)
             {
                 
                 print("체력 절반");
@@ -162,13 +223,18 @@ namespace yoon
                 }
                 else if(patternCount == 4)
                 {
-                    
+                    if (OnePaseAttack < 3)
+                    {
+                        patternCount = 99;
+                        RandomAttack();
+                    }
+                    else if (OnePaseAttack >= 3)
+                    {
+                        OnePaseAttack = 0;
+                        patternCount = 99;
+                        ChangePattern(BossPattern.FireBreath2);
+                    }
                 }
-            }
-            else if(bossHP <= 0)
-            {
-                bossHP = 0;
-                ChangePattern(BossPattern.Death);
             }
             
             
@@ -200,7 +266,7 @@ namespace yoon
             }
 
 
-            if (Input.GetKeyDown(KeyCode.R))
+            if (Input.GetKeyDown(KeyCode.E))
             {
                 ChangePattern(BossPattern.Fly2);
             }
@@ -222,6 +288,7 @@ namespace yoon
             anim = GetComponent<Animator>();
             anim.SetTrigger("Idle");
             anim.SetBool("isFlyTrue", false);
+            playerScript = GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerContorler>();
         }
 
         void StartScene()
@@ -233,6 +300,45 @@ namespace yoon
             }
         }
 
+        private void OnTriggerStay(Collider other)
+        {
+            if (other.gameObject.CompareTag("Melee") && playerScript.hit && !isDeadTrue)
+            {
+                Sward sward = other.GetComponent<Sward>();
+                print("hiyBoss");
+                playerScript.hit = false;
+                GetDamage(sward.attackPower);
+                return;
+            }
+        }
+
+        public void GetDamage(int damage)
+        {
+            if (bossHP > 0 && !isDeadTrue)
+            {
+                bossHP -= damage;
+                _hpBar.value = bossHP;
+                nextHP = bossHP;
+                currentTime = 0.0f; // 새 데미지를 받을 때마다 currentTime을 초기화
+                StartCoroutine(IUpdateDamageText(damage));
+            }
+        }
+
+        IEnumerator IUpdateDamageText(int damage)
+        {
+            hpText.gameObject.SetActive(true);
+            totalDamageTaken += damage; // 누적 데미지 업데이트
+            hpText.text = totalDamageTaken.ToString();
+            yield return new WaitForSeconds(2);
+            hpText.gameObject.SetActive(false);
+            totalDamageTaken = 0;
+        }
+
+        void BreathBefore()
+        {
+
+        }
+
         void CryAfter()
         {
             patternCount = 1;
@@ -240,6 +346,11 @@ namespace yoon
 
 
         void OnePaseAttackAfter()
+        {
+            patternCount = 1;
+        }
+
+        void TowPaseAttackAfter()
         {
             patternCount = 1;
         }
@@ -256,11 +367,13 @@ namespace yoon
 
         void BreathStart()
         {
+            isAttackTrue = true;
             fireParticle.SetActive(true);
         }
 
         void BreathEnd()
         {
+            isAttackTrue = false;
             fireParticle.SetActive(false);
         }
 
@@ -334,6 +447,8 @@ namespace yoon
             }
 
             OnePaseAttack++;
+            
+            
         }
 
         public void ChangePattern(BossPattern newPattern)
@@ -371,6 +486,9 @@ namespace yoon
                 anim.SetTrigger("Flying2");
             }
         }
+
+
+
 
         IEnumerator HandleAnimation(string animationName)
         {
