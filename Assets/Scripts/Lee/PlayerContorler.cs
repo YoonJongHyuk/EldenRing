@@ -233,6 +233,7 @@ public class PlayerContorler : MonoBehaviour
 
     void DodgeActivateInvincibility()
     {
+
         ActivateInvincibility(0.8f);
     }
 
@@ -349,6 +350,7 @@ public class PlayerContorler : MonoBehaviour
         isDashing = false;   // 대쉬 상태 초기화
         isDodge = false;     // 구르기 상태 초기화
         Run = true;
+        isAttack = false;
         staminaUseTrue = true;
     }
 
@@ -409,6 +411,7 @@ public class PlayerContorler : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.F) && !isJump && !Backstep && !isDodge && dashCooldownTimer <= 0 && currentStamina > staminaDrainRateDodge)
         {
+            isAttack = true;
             print("대쉬 시작"); 
             staminaValue(staminaDrainRateDodge, "isDodge");
 
@@ -449,8 +452,6 @@ public class PlayerContorler : MonoBehaviour
         else
         {
             isDashing = false; // 대쉬 종료
-            isDodge = false;   // 구르기 종료
-            DodgeAfter();      // 대쉬 후 처리
         }
     }
 
