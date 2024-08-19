@@ -158,13 +158,14 @@ namespace yoon
             bossDeathUI.SetActive(false);
             BossUI.SetActive(false);
         }
-
+        void DeathFunc()
+        {
+            StartCoroutine(ShowDeathUI());
+        }
 
         private void Update()
         {
-            StartScene();
-            LoopAnimationCheck();
-            MoveTowardsPlayer();
+            
 
             if (_nextHpBar.value != nextHP)
             {
@@ -191,15 +192,17 @@ namespace yoon
                 patternCount = 99;
                 print("주금");
                 ChangePattern(BossPattern.Death);
-                StartCoroutine(ShowDeathUI());
             }
-            else
+            else if(bossHP > 0 && !isDeadTrue)
             {
-                if (patternCount == 0)
+                StartScene();
+                LoopAnimationCheck();
+                MoveTowardsPlayer();
+                if (patternCount == 0 && !isDeadTrue)
                 {
                     ChangePattern(BossPattern.Idle);
                 }
-                else if (patternCount == 1)
+                else if (patternCount == 1 && !isDeadTrue)
                 {
                     PlayerChase();
                 }
@@ -231,14 +234,14 @@ namespace yoon
                         navMeshAgent.ResetPath();
                         ChangePattern(BossPattern.FireCry2);
                     }
-                    else if (patternCount == 4)
+                    else if (patternCount == 4 && !isDeadTrue)
                     {
                         if (OnePaseAttack < 3)
                         {
                             patternCount = 99;
                             RandomAttack();
                         }
-                        else if (OnePaseAttack >= 3)
+                        else if (OnePaseAttack >= 3 && !isDeadTrue)
                         {
                             OnePaseAttack = 0;
                             patternCount = 99;
@@ -246,21 +249,23 @@ namespace yoon
                             
                         }
                     }
+
+                    if (onePaseStart && bossHP <= bossHPHalf && !isDeadTrue)
+                    {
+                        onePaseStart = false;
+                        patternCount = 3;
+                    }
+
+
+                    if (patternCount == 99)
+                    {
+                        // 패턴 딜레이
+                    }
                 }
 
 
 
-                if (onePaseStart && bossHP <= bossHPHalf)
-                {
-                    onePaseStart = false;
-                    patternCount = 3;
-                }
-
-
-                if (patternCount == 99)
-                {
-                    // 패턴 딜레이
-                }
+                
 
 
 
