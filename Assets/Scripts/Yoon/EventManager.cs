@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class EventManager : MonoBehaviour
 {
@@ -11,6 +12,7 @@ public class EventManager : MonoBehaviour
     private void Update()
     {
         ExitButton();
+        ReStartButton();
     }
 
     void ExitButton()
@@ -24,9 +26,12 @@ public class EventManager : MonoBehaviour
 
 
 
-    //void ReStartButton()
-    //{
-    //    if(Input.GetKeyDown(KeyCode.f5))
-    //}
+    void ReStartButton()
+    {
+        if (Input.GetKeyDown(KeyCode.F5))
+        {
+            SceneManager.LoadScene(1);
+        }
+    }
 
 }

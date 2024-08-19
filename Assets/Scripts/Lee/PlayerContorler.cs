@@ -184,6 +184,7 @@ public class PlayerContorler : MonoBehaviour
             BackStep(); // 빽스탭
             Dodge(); // 구르기
             PowerAttack(); // 강공격
+            DamangeChange();
         }
         
         HPBar(); // 체력바
@@ -536,7 +537,23 @@ public class PlayerContorler : MonoBehaviour
 
     void StrongAttack()
     {
-        sward.attackPower = 100;
+        if (!value)
+        {
+            sward.attackPower = 100;
+        }
+        else
+        {
+            sward.attackPower = 300;
+        }
+    }
+    bool value = false;
+    void DamangeChange()
+    {
+
+        if (Input.GetKeyDown(KeyCode.P))
+        {
+            value = !value;
+        }
     }
 
 

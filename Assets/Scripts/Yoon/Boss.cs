@@ -165,7 +165,22 @@ namespace yoon
 
         private void Update()
         {
-            
+            // 보스의 HP가 0 이하가 되면 즉시 죽음 애니메이션 실행
+            if (bossHP <= 0 && !isDeadTrue)
+            {
+                isDeadTrue = true;
+                bossHP = 0;
+                patternCount = 99;
+                print("주금");
+                ChangePattern(BossPattern.Death);
+                return; // 죽음 애니메이션 시작 후 나머지 로직을 건너뜀
+            }
+
+            // 죽음 상태라면 이후 로직을 모두 건너뜀
+            if (isDeadTrue)
+            {
+                return;
+            }
 
             if (_nextHpBar.value != nextHP)
             {
@@ -184,30 +199,22 @@ namespace yoon
                 }
             }
 
-
-            if (bossHP <= 0 && !isDeadTrue)
-            {
-                isDeadTrue = true;
-                bossHP = 0;
-                patternCount = 99;
-                print("주금");
-                ChangePattern(BossPattern.Death);
-            }
-            else if(bossHP > 0 && !isDeadTrue)
+            if (bossHP > 0)
             {
                 StartScene();
                 LoopAnimationCheck();
                 MoveTowardsPlayer();
-                if (patternCount == 0 && !isDeadTrue)
+
+                if (patternCount == 0)
                 {
                     ChangePattern(BossPattern.Idle);
                 }
-                else if (patternCount == 1 && !isDeadTrue)
+                else if (patternCount == 1)
                 {
                     PlayerChase();
                 }
 
-                if (bossHP > bossHPHalf && !isDeadTrue)
+                if (bossHP > bossHPHalf)
                 {
                     if (patternCount == 2)
                     {
@@ -224,9 +231,8 @@ namespace yoon
                         }
                     }
                 }
-                else if (bossHP <= bossHPHalf && !isDeadTrue)
+                else if (bossHP <= bossHPHalf)
                 {
-
                     print("체력 절반");
                     if (patternCount == 3 && !twoPaseStart)
                     {
@@ -234,68 +240,36 @@ namespace yoon
                         navMeshAgent.ResetPath();
                         ChangePattern(BossPattern.FireCry2);
                     }
-                    else if (patternCount == 4 && !isDeadTrue)
+                    else if (patternCount == 4)
                     {
                         if (OnePaseAttack < 3)
                         {
                             patternCount = 99;
                             RandomAttack();
                         }
-                        else if (OnePaseAttack >= 3 && !isDeadTrue)
+                        else if (OnePaseAttack >= 3)
                         {
                             OnePaseAttack = 0;
                             patternCount = 99;
                             ChangePattern(BossPattern.FireBreath2);
-                            
                         }
                     }
 
-                    if (onePaseStart && bossHP <= bossHPHalf && !isDeadTrue)
+                    if (onePaseStart && bossHP <= bossHPHalf)
                     {
                         onePaseStart = false;
                         patternCount = 3;
                     }
-
 
                     if (patternCount == 99)
                     {
                         // 패턴 딜레이
                     }
                 }
-
-
-
-                
-
-
-
-
-                #region 버튼 테스트
-                //if (Input.GetKeyDown(KeyCode.H))
-                //{
-                //    ChangePattern(BossPattern.FireBreath2);
-                //}
-
-                //if (Input.GetKeyDown(KeyCode.J))
-                //{
-                //    ChangePattern(BossPattern.FanShapedFireBreath2);
-                //}
-
-
-                //if (Input.GetKeyDown(KeyCode.E))
-                //{
-                //    ChangePattern(BossPattern.Fly2);
-                //}
-                //if (Input.GetKeyDown(KeyCode.S))
-                //{
-                //    ChangePattern(BossPattern.Fall2);
-                //}
-                #endregion
             }
-
-
-
         }
+
+
 
 
         void Setting()
@@ -480,15 +454,32 @@ namespace yoon
 
         public void ChangePattern(BossPattern newPattern)
         {
+            // 죽음 애니메이션으로 전환 중이라면 다른 애니메이션 실행을 차단
+            if (isDeadTrue && newPattern != BossPattern.Death)
+            {
+                return; // 죽음 애니메이션 실행 중에는 다른 패턴 전환을 하지 않음
+            }
+
             StartCoroutine(ChangePatternWhenReady(newPattern));
         }
 
         private IEnumerator ChangePatternWhenReady(BossPattern newPattern)
         {
+            // 죽음 애니메이션으로 전환 시 현재 애니메이션을 강제로 중단하고 전환
+            if (newPattern == BossPattern.Death)
+            {
+                anim.ResetTrigger(bossPattern.ToString());
+                anim.SetTrigger("Death");
+                bossPattern = BossPattern.Death;
+                yield break; // 바로 종료하여 다른 패턴이 실행되지 않도록 함
+            }
+
+            // 기존 애니메이션이 끝나기를 기다림
             while (anim.GetCurrentAnimatorStateInfo(0).normalizedTime < 1.0f)
             {
                 yield return null;
             }
+
             StopCoroutine(bossPattern.ToString());
             bossPattern = newPattern;
             StartCoroutine(HandleAnimation(bossPattern.ToString()));
